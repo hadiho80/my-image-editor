@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#ff6b4a" />
+    <meta
+      name="description"
+      content="FunPic adalah editor foto offline berbasis web yang bisa di-install di Android dan iOS."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Righteous&display=swap" rel="stylesheet" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/assets/manifest-Gs08d3dq.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/assets/icon-7X88pjyY.svg" />
+    <link rel="apple-touch-icon" href="/assets/icon-192-DxdDlCEF.svg" />
+    <title>FunPic</title>
+    <script type="module" crossorigin src="/assets/index-TpsWFz9D.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-qflBGudc.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <section class="mobile-shells">
+        <div class="phone-stage phone-stage--home">
+          <div class="mobile-topbar">
+            <div class="mobile-logo">FunPic &#10022;</div>
+            <div class="mobile-icons">
+              <button id="mobileStatusButton" class="icon-btn" type="button" title="Status project">&#128276;</button>
+              <button id="mobileSettingsButton" class="icon-btn" type="button" title="Pengaturan editor">&#9881;</button>
+            </div>
+          </div>
+
+          <section class="panel panel--library mobile-panel mobile-panel--home">
+            <div class="panel__header">
+              <h2>Media & Template</h2>
+              <p>Upload foto lalu pilih layout kolase.</p>
+            </div>
+
+            <label id="mobileUploadCard" class="upload-card">
+              <strong>Upload Foto</strong>
+              <span>Maksimal 4 foto. Bisa dari galeri, kamera, atau file lokal.</span>
+            </label>
+
+            <div class="quick-actions">
+              <button id="mobileCameraButton" class="ghost-button" type="button">Ambil Foto</button>
+              <button id="mobileClearProjectButton" class="ghost-button" type="button">Reset Project</button>
+            </div>
+
+            <div class="section-block">
+              <h3>Template</h3>
+              <div id="mobileTemplateList" class="template-list template-list--mockup"></div>
+            </div>
+
+            <div class="section-block">
+              <div class="section-headline">
+                <h3>Foto Tersedia</h3>
+                <span id="mobilePhotoCount">0 foto</span>
+              </div>
+              <div id="mobilePhotoLibrary" class="photo-library photo-library--mockup empty-state">
+                <p>Belum ada foto. Upload dulu untuk mulai edit.</p>
+              </div>
+            </div>
+
+            <div class="section-block">
+              <h3>Stiker</h3>
+              <div id="mobileStickerList" class="sticker-list sticker-list--mockup"></div>
+            </div>
+
+            <div class="section-block">
+              <div class="section-headline">
+                <h3>Saved Projects</h3>
+                <button id="mobileRefreshProjectsButton" class="mini-button" type="button">Refresh</button>
+              </div>
+              <div id="mobileSavedProjectsList" class="saved-projects">
+                <p class="hint-text">Belum ada project tersimpan.</p>
+              </div>
+            </div>
+          </section>
+
+          <nav class="mobile-bottom-nav">
+            <button class="nav-item active" data-mobile-view="home" type="button"><span class="ni">&#8962;</span>Beranda</button>
+            <button class="nav-item" data-mobile-view="editor" type="button"><span class="ni">&#9998;</span>Editor</button>
+            <button class="nav-item" data-mobile-view="share" type="button"><span class="ni">&#128228;</span>Share</button>
+            <button class="nav-item" data-mobile-view="home" type="button"><span class="ni">&#128100;</span>Profil</button>
+          </nav>
+        </div>
+
+        <div class="phone-stage phone-stage--editor">
+          <div class="mobile-editor-topbar">
+            <button class="back-btn" type="button">&#8249;</button>
+            <div class="mobile-editor-title">Kolase Liburan</div>
+            <button class="compact-btn compact-btn--ghost" type="button">&#8630; Undo</button>
+            <button class="compact-btn compact-btn--accent" type="button">Export</button>
+          </div>
+
+          <section class="editor-panel mobile-panel mobile-panel--editor">
+            <div class="editor-stage-wrap">
+              <div id="mobileEditorPreview" class="editor-stage editor-stage--mockup" aria-hidden="true">
+                <canvas id="mobileDrawingCanvas" class="drawing-canvas"></canvas>
+                <div id="mobileSelectionActions" class="selection-actions selection-actions--mobile hidden">
+                  <button id="mobileSelectionCancelButton" class="mini-button icon-action" type="button" title="Cancel" aria-label="Cancel">×</button>
+                  <button id="mobileSelectionDeleteButton" class="mini-button mini-button--danger icon-action" type="button" title="Hapus" aria-label="Hapus">🗑</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mobile-tabs">
+              <button class="ttab active" data-mobile-tool="pointer" type="button">Pointer</button>
+              <button class="ttab" data-mobile-tool="sticker" type="button">Stiker</button>
+              <button class="ttab" data-mobile-tool="text" type="button">Teks</button>
+              <button class="ttab" data-mobile-tool="filter" type="button">Filter</button>
+              <button class="ttab" data-mobile-tool="draw" type="button">Draw</button>
+              <button class="ttab" data-mobile-tool="layer" type="button">Layer</button>
+            </div>
+
+            <div id="mobileControls" class="mobile-controls">
+              <div class="slot-help">
+                <strong>Tips:</strong> pilih slot lalu atur zoom/geser foto. Drag stiker untuk pindah posisi, dan pilih text layer untuk edit cepat.
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <div class="phone-stage phone-stage--share">
+          <div class="mobile-share-topbar">
+            <button class="back-btn" type="button">&#8249;</button>
+            <div class="mobile-editor-title">Bagikan Foto</div>
+            <button id="mobileQualityToggleButton" class="icon-btn icon-btn--small" type="button">HD</button>
+          </div>
+
+          <section class="mobile-share-panel">
+            <div id="mobileSharePreview" class="share-preview-box"></div>
+
+            <div class="quality-row">
+              <button class="q-opt sel" data-export-preset="hd" type="button">HD<span class="q-size">4000 x 4000</span></button>
+              <button class="q-opt" data-export-preset="standard" type="button">Standard<span class="q-size">2000 x 2000</span></button>
+              <button class="q-opt" data-export-preset="web" type="button">Web<span class="q-size">1080 x 1080</span></button>
+            </div>
+
+            <div class="share-platforms">
+              <button class="sp" data-share-target="whatsapp" type="button"><span class="sp-icon sp-wa">WA</span><span>WhatsApp</span></button>
+              <button class="sp" data-share-target="instagram" type="button"><span class="sp-icon sp-ig">IG</span><span>Instagram</span></button>
+              <button class="sp" data-share-target="facebook" type="button"><span class="sp-icon sp-fb">f</span><span>Facebook</span></button>
+              <button class="sp" data-share-target="telegram" type="button"><span class="sp-icon sp-tg">TG</span><span>Telegram</span></button>
+              <button class="sp" data-share-target="twitter" type="button"><span class="sp-icon sp-tw">X</span><span>Twitter/X</span></button>
+              <button class="sp" data-share-target="linkedin" type="button"><span class="sp-icon sp-li">in</span><span>LinkedIn</span></button>
+              <button class="sp" data-share-target="copy" type="button"><span class="sp-icon sp-cp">CP</span><span>Copy</span></button>
+              <button id="mobileSavePlatformButton" class="sp" data-share-target="save" type="button"><span class="sp-icon sp-dl">SV</span><span>Simpan</span></button>
+            </div>
+
+            <button id="mobileSaveGalleryButton" class="save-btn" type="button">&#128190; Simpan ke Galeri</button>
+          </section>
+        </div>
+      </section>
+
+      <main class="desktop-shell">
+        <div class="tablet-frame">
+          <div class="desktop-topbar">
+            <div class="desktop-logo">FunPic &#10022;</div>
+            <div class="desktop-project-name">Kolase Liburan.myimage</div>
+            <div class="desktop-spacer"></div>
+            <button id="undoButton" class="toolbar-pill toolbar-pill--ghost" type="button">&#8634; Undo</button>
+            <button id="redoButton" class="toolbar-pill toolbar-pill--ghost" type="button">&#8635; Redo</button>
+            <div class="canvas-zoom-controls" aria-label="Zoom canvas">
+              <button id="canvasZoomOutButton" class="toolbar-pill toolbar-pill--ghost" type="button">-</button>
+              <button id="canvasZoomResetButton" class="toolbar-pill toolbar-pill--dark" type="button">100%</button>
+              <button id="canvasZoomInButton" class="toolbar-pill toolbar-pill--ghost" type="button">+</button>
+            </div>
+            <button id="saveButton" class="toolbar-pill toolbar-pill--dark" type="button">&#128190; Save Project</button>
+            <div class="image-save-controls" aria-label="Save image">
+              <select id="imageFormatInput" class="toolbar-select" aria-label="Format gambar">
+                <option value="png">PNG</option>
+                <option value="jpeg">JPG</option>
+                <option value="webp">WebP</option>
+              </select>
+              <button id="saveImageButton" class="toolbar-pill toolbar-pill--dark" type="button">&#128247; Save Image</button>
+            </div>
+            <button id="exportPngButton" class="toolbar-pill toolbar-pill--ghost" type="button">&#128247; PNG</button>
+            <button id="rightbarToggleButton" class="toolbar-pill toolbar-pill--ghost" type="button">Panel</button>
+            <button id="shareButton" class="toolbar-pill toolbar-pill--accent-secondary" type="button">&#128228; Share</button>
+          </div>
+
+          <div class="desktop-body">
+            <aside class="desktop-left-rail">
+              <button class="rail-btn active" data-desktop-tool="pointer" type="button" title="Pointer / select">Pointer</button>
+              <button class="rail-btn" data-desktop-tool="media" type="button" title="Media dan template">Foto</button>
+              <button class="rail-btn" data-desktop-tool="frame" type="button" title="Frame dan crop">Frame</button>
+              <button class="rail-btn" data-desktop-tool="sticker" type="button" title="Stiker">Stiker</button>
+              <button class="rail-btn" data-desktop-tool="text" type="button" title="Teks">Teks</button>
+              <div class="rail-sep"></div>
+              <button class="rail-btn" data-desktop-tool="filter" type="button" title="Filter">FX</button>
+              <button class="rail-btn" data-desktop-tool="draw" type="button" title="Draw">PEN</button>
+              <button class="rail-btn" data-desktop-tool="project" type="button" title="Project">File</button>
+              <div class="rail-sep"></div>
+              <button class="rail-btn" data-desktop-tool="layer" type="button" title="Layer">Layer</button>
+              <button class="rail-btn" data-desktop-tool="saved" type="button" title="Project tersimpan">Saved</button>
+            </aside>
+
+            <section class="desktop-canvas-zone">
+              <div class="desktop-canvas-stage">
+                <div class="editor-stage-wrap editor-stage-wrap--desktop">
+                  <div id="editorStage" class="editor-stage editor-stage--desktop" aria-label="Canvas editor">
+                    <canvas id="drawingCanvas" class="drawing-canvas"></canvas>
+                    <div id="selectionActions" class="selection-actions hidden">
+                      <button id="selectionCancelButton" class="mini-button icon-action" type="button" title="Cancel" aria-label="Cancel">×</button>
+                      <button id="selectionDeleteButton" class="mini-button mini-button--danger icon-action" type="button" title="Hapus" aria-label="Hapus">🗑</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <aside class="panel panel--controls desktop-right-panel">
+              <div class="rightbar-resize-handle" id="rightbarResizeHandle" role="separator" aria-label="Resize panel kanan" aria-orientation="vertical"></div>
+              <div class="desktop-right-tabs">
+                <button class="desktop-tab active" data-panel-tab="props" type="button">Props</button>
+                <button class="desktop-tab" data-panel-tab="layer" type="button">Layer</button>
+                <button class="desktop-tab" data-panel-tab="filter" type="button">Filter</button>
+              </div>
+
+              <div class="panel__header">
+                <h2>Kontrol Editor</h2>
+                <p>Atur teks, filter, warna frame, dan brush.</p>
+              </div>
+
+              <div id="section-media" class="section-block">
+                <div class="section-headline">
+                  <h3>Media & Template</h3>
+                  <span id="photoCount">0 foto</span>
+                </div>
+                <label class="upload-card upload-card--desktop" for="photoInput">
+                  <strong>Upload Foto</strong>
+                  <span>Maksimal 8 foto. Bisa dari galeri, kamera, atau file lokal.</span>
+                </label>
+                <div class="quick-actions">
+                  <button id="cameraButton" class="ghost-button" type="button">Ambil Foto</button>
+                  <button id="clearProjectButton" class="ghost-button" type="button">Reset</button>
+                </div>
+                <div class="section-block section-block--nested">
+                  <h3>Template</h3>
+                  <div id="templateList" class="template-list"></div>
+                </div>
+                <div class="section-block section-block--nested">
+                  <h3>Foto</h3>
+                  <div id="photoLibrary" class="photo-library empty-state">
+                    <p>Belum ada foto. Upload dulu untuk mulai edit.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div id="section-text" class="section-block">
+                <div class="section-headline">
+                  <h3>Layer Text & Stiker</h3>
+                  <button id="addTextLayerButton" class="mini-button" type="button">Tambah Text</button>
+                </div>
+                <div id="textLayerList" class="layer-list"></div>
+                <label class="field">
+                  <span>Isi teks</span>
+                  <input id="textLayerInput" type="text" maxlength="60" placeholder="Tulis caption..." />
+                </label>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Ukuran</span>
+                    <input id="textSizeInput" type="range" min="18" max="72" step="1" />
+                  </label>
+                  <label class="field">
+                    <span>Warna</span>
+                    <input id="textColorInput" type="color" />
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Rotasi</span>
+                  <input id="textRotationInput" type="range" min="-180" max="180" step="1" />
+                </label>
+                <label class="field">
+                  <span>Font</span>
+                  <select id="textFontInput"></select>
+                </label>
+                <div class="text-style-controls" aria-label="Gaya teks">
+                  <button id="textNormalButton" class="mini-button" type="button">Normal</button>
+                  <label class="toggle">
+                    <input id="textBoldInput" type="checkbox" />
+                    <span>Bold</span>
+                  </label>
+                  <label class="toggle">
+                    <input id="textItalicInput" type="checkbox" />
+                    <span>Italic</span>
+                  </label>
+                  <label class="toggle">
+                    <input id="textUnderlineInput" type="checkbox" />
+                    <span>Underline</span>
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Background teks</span>
+                  <div class="color-input-wrap">
+                    <label class="color-chip">
+                      <input id="textBgColorInput" type="color" />
+                    </label>
+                    <input id="textBgColorValue" type="text" maxlength="9" placeholder="#00000000" />
+                  </div>
+                </label>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Posisi X</span>
+                    <input id="textPosXInput" type="range" min="5" max="95" step="1" />
+                  </label>
+                  <label class="field">
+                    <span>Posisi Y</span>
+                    <input id="textPosYInput" type="range" min="5" max="95" step="1" />
+                  </label>
+                </div>
+                <button id="deleteTextLayerButton" class="ghost-button" type="button">Hapus Layer Aktif</button>
+              </div>
+
+              <div id="section-filter" class="section-block">
+                <h3>Filter</h3>
+                <div id="filterPresetList" class="preset-list"></div>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Brightness</span>
+                    <input id="brightnessInput" type="range" min="50" max="150" step="1" />
+                  </label>
+                  <label class="field">
+                    <span>Contrast</span>
+                    <input id="contrastInput" type="range" min="50" max="150" step="1" />
+                  </label>
+                </div>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Saturate</span>
+                    <input id="saturateInput" type="range" min="0" max="200" step="1" />
+                  </label>
+                  <label class="field">
+                    <span>Blur</span>
+                    <input id="blurInput" type="range" min="0" max="8" step="0.5" />
+                  </label>
+                </div>
+                <button id="resetFilterButton" class="ghost-button" type="button">Reset Filter</button>
+              </div>
+
+              <div id="section-frame" class="section-block">
+                <h3>Frame</h3>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Background</span>
+                    <input id="backgroundColorInput" type="color" />
+                  </label>
+                  <label class="field">
+                    <span>Gap</span>
+                    <input id="gapInput" type="range" min="0" max="32" step="1" />
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Radius</span>
+                  <input id="radiusInput" type="range" min="0" max="40" step="1" />
+                </label>
+                <div class="section-block section-block--nested">
+                  <div class="section-headline">
+                    <h3>Border Frame</h3>
+                    <label class="toggle">
+                      <input id="frameBorderEnabledInput" type="checkbox" />
+                      <span>Aktif</span>
+                    </label>
+                  </div>
+                  <div class="field-row">
+                    <label class="field">
+                      <span>Warna border</span>
+                      <input id="frameBorderColorInput" type="color" />
+                    </label>
+                    <label class="field">
+                      <span>Tebal border</span>
+                      <input id="frameBorderSizeInput" type="range" min="0" max="24" step="1" />
+                    </label>
+                  </div>
+                  <label class="field">
+                    <span>Bentuk border</span>
+                    <select id="frameBorderStyleInput">
+                      <option value="solid">Solid</option>
+                      <option value="dashed">Dashed</option>
+                      <option value="dotted">Dotted</option>
+                      <option value="double">Double</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Ratio kanvas</span>
+                  <select id="canvasRatioInput">
+                    <option value="custom">Custom</option>
+                    <option value="1:1">1:1 Square</option>
+                    <option value="4:5">4:5 Portrait</option>
+                    <option value="9:16">9:16 Story</option>
+                    <option value="16:9">16:9 Landscape</option>
+                  </select>
+                </label>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Lebar kanvas</span>
+                    <input id="canvasWidthInput" type="range" min="320" max="3000" step="10" />
+                  </label>
+                  <label class="field">
+                    <span>Tinggi kanvas</span>
+                    <input id="canvasHeightInput" type="range" min="320" max="3000" step="10" />
+                  </label>
+                </div>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Lebar frame aktif</span>
+                    <input id="slotWidthInput" type="range" min="14" max="100" step="1" />
+                  </label>
+                  <label class="field">
+                    <span>Tinggi frame aktif</span>
+                    <input id="slotHeightInput" type="range" min="14" max="100" step="1" />
+                  </label>
+                </div>
+              </div>
+
+              <div id="section-crop" class="section-block">
+                <h3>Crop Slot Aktif</h3>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Zoom</span>
+                    <input id="slotZoomInput" type="range" min="100" max="220" step="1" />
+                  </label>
+                  <label class="field">
+                    <span>Geser X</span>
+                    <input id="slotOffsetXInput" type="range" min="-35" max="35" step="1" />
+                  </label>
+                </div>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Geser Y</span>
+                    <input id="slotOffsetYInput" type="range" min="-35" max="35" step="1" />
+                  </label>
+                </div>
+                <button id="resetSlotButton" class="ghost-button" type="button">Reset Crop Slot</button>
+              </div>
+
+              <div id="section-sticker" class="section-block">
+                <h3>Stiker</h3>
+                <div id="stickerList" class="sticker-list"></div>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Ukuran</span>
+                    <input id="stickerSizeInput" type="range" min="24" max="220" step="1" />
+                  </label>
+                  <label class="field">
+                    <span>Rotasi</span>
+                    <input id="stickerRotationInput" type="range" min="-180" max="180" step="1" />
+                  </label>
+                </div>
+                <button id="deleteStickerButton" class="ghost-button" type="button">Hapus Stiker</button>
+              </div>
+
+              <div id="section-draw" class="section-block">
+                <div class="section-headline">
+                  <h3>Draw</h3>
+                  <label class="toggle">
+                    <input id="drawToggle" type="checkbox" />
+                    <span>Aktif</span>
+                  </label>
+                </div>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Warna</span>
+                    <input id="brushColorInput" type="color" />
+                  </label>
+                  <label class="field">
+                    <span>Tebal</span>
+                    <input id="brushSizeInput" type="range" min="2" max="32" step="1" />
+                  </label>
+                </div>
+                <label class="toggle">
+                  <input id="eraserToggle" type="checkbox" />
+                  <span>Eraser</span>
+                </label>
+                <button id="clearDrawingButton" class="ghost-button" type="button">Hapus Coretan</button>
+              </div>
+
+              <div id="section-project" class="section-block">
+                <h3>Project</h3>
+                <div class="section-headline">
+                  <h3>Project Tersimpan</h3>
+                  <button id="refreshProjectsButton" class="mini-button" type="button">Refresh</button>
+                </div>
+                <div id="savedProjectsList" class="saved-projects">
+                  <p class="hint-text">Belum ada project tersimpan.</p>
+                </div>
+                <div class="stacked-actions">
+                  <button id="saveAsButton" class="ghost-button" type="button">Simpan Sebagai PNG</button>
+                  <button id="renameProjectButton" class="ghost-button" type="button">Rename Project</button>
+                  <button id="loadProjectButton" class="ghost-button" type="button">Muat Project Tersimpan</button>
+                  <button id="importProjectButton" class="ghost-button" type="button">Import JSON Project</button>
+                  <button id="downloadProjectButton" class="ghost-button" type="button">Download JSON Project</button>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+    </div>
+    <button id="installAppButton" class="install-button hidden install-button--floating" type="button">Install App</button>
+
+    <template id="slotTemplate">
+      <button class="slot" type="button">
+        <span class="slot__placeholder">Pilih Foto</span>
+        <img class="slot__image hidden" alt="" />
+      </button>
+    </template>
+
+    <template id="stickerTemplate">
+      <button class="sticker-button" type="button"></button>
+    </template>
+
+    <template id="photoThumbTemplate">
+      <button class="photo-thumb" type="button">
+        <img alt="" />
+      </button>
+    </template>
+
+    <template id="savedProjectTemplate">
+      <article class="saved-project">
+        <button class="saved-project__load" type="button">
+          <img class="saved-project__thumb hidden" alt="" />
+          <div class="saved-project__meta">
+            <strong class="saved-project__name"></strong>
+            <span class="saved-project__time"></span>
+          </div>
+        </button>
+        <button class="saved-project__delete" type="button">Hapus</button>
+      </article>
+    </template>
+
+    <input id="photoInput" type="file" accept="image/*" multiple hidden />
+    <input id="projectImportInput" type="file" accept=".json,application/json" hidden />
+
+  </body>
+</html>

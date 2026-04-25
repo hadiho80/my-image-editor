@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Image Editor - Mockup</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --accent: #ff6b4a;
+      --gold: #ffd166;
+      --mint: #21d19f;
+      --bg: #090917;
+      --bg-soft: #15152b;
+      --panel: #1c1d37;
+      --text: #f7f4ff;
+      --muted: rgba(247,244,255,.6);
+    }
+    body {
+      font-family: "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255,107,74,.16), transparent 24%),
+        radial-gradient(circle at top right, rgba(33,209,159,.14), transparent 26%),
+        linear-gradient(180deg, #101022 0%, #090917 100%);
+      padding: 40px 24px 80px;
+    }
+    h1, h2 { font-weight: 800; }
+    .hero { text-align: center; margin-bottom: 40px; }
+    .hero h1 { font-size: clamp(2.3rem, 6vw, 4rem); }
+    .hero p { margin-top: 12px; color: var(--muted); }
+    .badge-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .badge {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 28px; max-width: 1240px; margin: 0 auto 50px; }
+    .phone {
+      height: 620px;
+      background: var(--bg-soft);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 34px;
+      padding: 18px;
+      box-shadow: 0 30px 80px rgba(0,0,0,.45);
+    }
+    .screen-title { text-align: center; margin-bottom: 14px; font-size: 1rem; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+    .card {
+      background: var(--panel);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .upload { padding: 18px; border: 1.5px dashed rgba(255,107,74,.7); background: rgba(255,107,74,.08); text-align: center; }
+    .upload strong { display: block; font-size: 1.1rem; }
+    .upload span { display: block; margin-top: 8px; color: var(--muted); }
+    .template-row, .thumb-row, .sticker-row, .toolbar { display: flex; gap: 10px; }
+    .template-row, .thumb-row, .sticker-row { margin-top: 16px; }
+    .mini-card {
+      flex: 1;
+      min-height: 72px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .editor {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .toolbar button, .share-actions button {
+      flex: 1;
+      padding: 12px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+    }
+    .toolbar button.primary, .share-actions button.primary {
+      background: linear-gradient(135deg, var(--accent), #ff9467);
+    }
+    .canvas {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+    }
+    .collage {
+      position: absolute;
+      inset: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 10px;
+    }
+    .cell { border-radius: 14px; }
+    .cell:nth-child(1) { background: linear-gradient(135deg, #8249ff, #3d7fff); }
+    .cell:nth-child(2) { background: linear-gradient(135deg, #ff9562, #ffd166); }
+    .cell:nth-child(3) { background: linear-gradient(135deg, #ff6ba2, #ff9ece); }
+    .cell:nth-child(4) { background: linear-gradient(135deg, #1ec79a, #7fffd4); }
+    .caption {
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.3);
+      font-weight: 700;
+    }
+    .sticker {
+      position: absolute;
+      font-size: 2rem;
+    }
+    .sticker.s1 { top: 18%; right: 16%; }
+    .sticker.s2 { left: 20%; bottom: 22%; }
+    .stack { display: flex; flex-direction: column; gap: 12px; }
+    .control { padding: 14px; }
+    .control h3 { margin-bottom: 10px; font-size: 1rem; }
+    .line { height: 12px; border-radius: 999px; background: rgba(255,255,255,.08); margin-top: 10px; overflow: hidden; }
+    .line span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--mint)); width: 60%; }
+    .share-preview { aspect-ratio: 1; position: relative; overflow: hidden; }
+    .share-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
+    @media (max-width: 700px) {
+      body { padding: 24px 16px 60px; }
+      .phone { height: 560px; }
+    }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <h1>My Image Editor</h1>
+    <p>Mockup PWA editor foto offline untuk Android, iOS, tablet, dan desktop.</p>
+    <div class="badge-row">
+      <span class="badge">Offline First</span>
+      <span class="badge">Installable</span>
+      <span class="badge">Export PNG</span>
+      <span class="badge">Native Share</span>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div>
+      <div class="screen-title">Beranda</div>
+      <div class="phone">
+        <div class="stack">
+          <div class="card upload">
+            <strong>Upload Foto</strong>
+            <span>Pilih dari galeri, kamera, atau file lokal</span>
+          </div>
+          <div class="card control">
+            <h3>Template</h3>
+            <div class="template-row">
+              <div class="mini-card"></div>
+              <div class="mini-card"></div>
+              <div class="mini-card"></div>
+            </div>
+          </div>
+          <div class="card control">
+            <h3>Foto Tersedia</h3>
+            <div class="thumb-row">
+              <div class="mini-card"></div>
+              <div class="mini-card"></div>
+              <div class="mini-card"></div>
+            </div>
+          </div>
+          <div class="card control">
+            <h3>Stiker Populer</h3>
+            <div class="sticker-row">
+              <div class="mini-card"></div>
+              <div class="mini-card"></div>
+              <div class="mini-card"></div>
+              <div class="mini-card"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="screen-title">Editor</div>
+      <div class="phone">
+        <div class="editor">
+          <div class="toolbar">
+            <button>Undo</button>
+            <button>Redo</button>
+            <button class="primary">Export</button>
+          </div>
+          <div class="card canvas">
+            <div class="collage">
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+            </div>
+            <div class="sticker s1">✨</div>
+            <div class="sticker s2">❤️</div>
+            <div class="caption">Summer Memory</div>
+          </div>
+          <div class="card control">
+            <h3>Filter & Caption</h3>
+            <div class="line"><span></span></div>
+            <div class="line"><span style="width:70%"></span></div>
+            <div class="line"><span style="width:48%"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="screen-title">Share</div>
+      <div class="phone">
+        <div class="stack">
+          <div class="card share-preview">
+            <div class="collage">
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+              <div class="cell"></div>
+            </div>
+            <div class="sticker s1">🎉</div>
+            <div class="caption">Ready to Share</div>
+          </div>
+          <div class="share-actions">
+            <button class="primary">Simpan PNG</button>
+            <button>Share</button>
+            <button>WhatsApp</button>
+            <button>Instagram</button>
+          </div>
+          <div class="card control">
+            <h3>PWA Install</h3>
+            <p style="color: var(--muted); line-height: 1.6;">
+              Android bisa install lewat Chrome. iOS bisa lewat Safari lalu Add to Home Screen.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
