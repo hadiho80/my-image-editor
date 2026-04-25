@@ -544,6 +544,17 @@ button {
   cursor: grab;
 }
 
+.text-layer.is-editing {
+  min-width: 120px;
+  cursor: text;
+  outline: 2px solid rgba(255, 209, 102, 0.95);
+  white-space: pre-wrap;
+  overflow: visible;
+  text-overflow: clip;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 .text-layer.is-active {
   outline: 2px solid rgba(255, 107, 74, 0.9);
   box-shadow: 0 0 0 6px rgba(255, 87, 87, 0.12), 0 16px 30px rgba(0, 0, 0, 0.24);

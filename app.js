@@ -355,7 +355,8 @@ function normalizeTextBgColor(value) {
 
 function colorForInputValue(value) {
   const normalized = normalizeTextBgColor(value);
-  if (normalized === TRANSPARENT_TEXT_BG || normalized.length === 9) return normalized.slice(0, 7) || "#000000";
+  if (normalized === TRANSPARENT_TEXT_BG) return "#000000";
+  if (normalized.length === 9) return normalized.slice(0, 7) || "#000000";
   return normalized;
 }
 
@@ -1892,11 +1893,11 @@ function renderStageContents(stageElement, { interactive = false, allowResize = 
       ? Math.max(560, window.innerWidth - 72 - 340 - 112)
       : Math.max(280, window.innerWidth - 32);
   }
-  const baseTargetWidth = isDesktopStage
-    ? clamp(availableWidth, 560, 980)
-    : availableWidth;
+  const desktopScale = clamp(availableWidth / 1080, 0.38, 0.9);
+  const baseTargetWidth = isDesktopStage ? state.canvasWidth * desktopScale : availableWidth;
+  const baseTargetHeight = isDesktopStage ? state.canvasHeight * desktopScale : availableWidth * (state.canvasHeight / state.canvasWidth);
   const targetWidth = isDesktopStage ? baseTargetWidth * canvasViewportZoom : baseTargetWidth;
-  const targetHeight = targetWidth * (state.canvasHeight / state.canvasWidth);
+  const targetHeight = isDesktopStage ? baseTargetHeight * canvasViewportZoom : baseTargetHeight;
   stageElement.style.width = `${targetWidth}px`;
   stageElement.style.height = `${targetHeight}px`;
   stageElement.style.aspectRatio = "auto";
@@ -2079,8 +2080,9 @@ function renderStageContents(stageElement, { interactive = false, allowResize = 
   }
 
   state.texts.forEach((text, index) => {
-    const node = document.createElement("button");
-    node.type = "button";
+    const node = document.createElement("div");
+    node.role = "button";
+    node.tabIndex = 0;
     node.className = "text-layer";
     node.dataset.textId = text.id;
     node.textContent = text.text;
@@ -2882,18 +2884,56 @@ function angleBetween(a, b) {
   return (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
 }
 
-function editTextLayerInline(textId) {
+function editTextLayerInline(textId, targetNode = null) {
   const text = state.texts.find((item) => item.id === textId);
   if (!text) return;
-  const value = window.prompt("Ganti isi teks:", text.text);
-  if (value === null) return;
+  const node = targetNode || document.querySelector(`.text-layer[data-text-id="${textId}"]`);
+  if (!node) return;
+  activeDrag = null;
   setState((draft) => {
-    const current = draft.texts.find((item) => item.id === textId);
-    if (!current) return;
-    current.text = value.trim() || current.text;
     draft.selectedTextId = textId;
     draft.activeSelectionType = "text";
-  });
+  }, { trackHistory: false, renderMode: "none" });
+  node.classList.add("is-editing");
+  node.contentEditable = "true";
+  node.spellcheck = false;
+  node.focus({ preventScroll: true });
+
+  const range = document.createRange();
+  range.selectNodeContents(node);
+  const selection = window.getSelection();
+  selection?.removeAllRanges();
+  selection?.addRange(range);
+
+  const finish = ({ save = true } = {}) => {
+    const nextText = node.textContent.trim();
+    node.contentEditable = "false";
+    node.classList.remove("is-editing");
+    node.removeEventListener("blur", handleBlur);
+    node.removeEventListener("keydown", handleKeydown);
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === textId);
+      if (!current) return;
+      current.text = save && nextText ? nextText : text.text;
+      draft.selectedTextId = textId;
+      draft.activeSelectionType = "text";
+    });
+  };
+
+  const handleBlur = () => finish({ save: true });
+  const handleKeydown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      finish({ save: true });
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      finish({ save: false });
+    }
+  };
+
+  node.addEventListener("blur", handleBlur);
+  node.addEventListener("keydown", handleKeydown);
 }
 
 function setupTextInteractions(node, textId, stageElement = editorStage) {
@@ -2901,6 +2941,13 @@ function setupTextInteractions(node, textId, stageElement = editorStage) {
 
   node.addEventListener("pointerdown", (event) => {
     if (state.drawingEnabled) return;
+    if (node.isContentEditable) return;
+    if (event.detail >= 2) {
+      event.preventDefault();
+      event.stopPropagation();
+      editTextLayerInline(textId, node);
+      return;
+    }
     event.preventDefault();
     const text = state.texts.find((item) => item.id === textId);
     if (!text) return;
@@ -2937,6 +2984,7 @@ function setupTextInteractions(node, textId, stageElement = editorStage) {
   });
 
   node.addEventListener("pointermove", (event) => {
+    if (node.isContentEditable) return;
     const rect = stageElement.getBoundingClientRect();
     if (pointers.has(event.pointerId)) {
       pointers.set(event.pointerId, { x: event.clientX - rect.left, y: event.clientY - rect.top });
@@ -3002,7 +3050,7 @@ function setupTextInteractions(node, textId, stageElement = editorStage) {
   node.addEventListener("dblclick", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    editTextLayerInline(textId);
+    editTextLayerInline(textId, node);
   });
 }
 
@@ -3248,6 +3296,9 @@ function handleGlobalTransformDrag(event) {
 
   if (activeDrag.kind === "layer-drag") {
     event.preventDefault();
+    const movedDistance = Math.hypot(event.clientX - activeDrag.startClientX, event.clientY - activeDrag.startClientY);
+    if (!activeDrag.moved && movedDistance < 5) return;
+    activeDrag.moved = true;
     const nextX = clamp((event.clientX - stageRect.left - activeDrag.offsetX) / Math.max(1, stageRect.width), 0.04, 0.96);
     const nextY = clamp((event.clientY - stageRect.top - activeDrag.offsetY) / Math.max(1, stageRect.height), 0.04, 0.96);
     setState((draft) => {
@@ -3494,16 +3545,22 @@ function handleGlobalTransformDrag(event) {
 function finishGlobalTransformDrag() {
   if (!activeDrag) return;
   if (!String(activeDrag.kind).endsWith("-handle") && activeDrag.kind !== "layer-drag" && activeDrag.kind !== "global-slot-resize") return;
+  const finishedDrag = activeDrag;
   if (activeDrag.stageElement?.hasPointerCapture?.(activeDrag.pointerId)) {
     activeDrag.stageElement.releasePointerCapture(activeDrag.pointerId);
   }
   activeDrag = null;
+  if (finishedDrag.kind === "layer-drag" && finishedDrag.type === "text" && !finishedDrag.moved) {
+    editTextLayerInline(finishedDrag.targetId, finishedDrag.layerNode);
+    return;
+  }
   pushHistory();
   renderAll();
 }
 
 function startStagePointerInteraction(stageElement, event) {
   if (!stageElement || state.drawingEnabled) return;
+  if (event.target?.isContentEditable || event.target?.closest?.(".text-layer.is-editing")) return;
   if (event.target.closest(".selection-actions, .mobile-controls, .desktop-right-panel, .mobile-tabs")) return;
 
   const resizeTarget = event.target.closest(".slot__resize");
@@ -3537,6 +3594,12 @@ function startStagePointerInteraction(stageElement, event) {
 
   const type = textNode ? "text" : stickerNode ? "sticker" : "drawing";
   const id = textNode ? textNode.dataset.textId : stickerNode ? stickerNode.dataset.stickerId : "drawing-layer";
+  if (type === "text" && event.detail >= 2) {
+    event.preventDefault();
+    event.stopPropagation();
+    editTextLayerInline(id, textNode);
+    return;
+  }
   const item = type === "text"
     ? state.texts.find((entry) => entry.id === id)
     : type === "sticker"
@@ -3563,6 +3626,9 @@ function startStagePointerInteraction(stageElement, event) {
     layerNode,
     type,
     targetId: id,
+    startClientX: event.clientX,
+    startClientY: event.clientY,
+    moved: false,
     offsetX: event.clientX - rect.left - item.x * rect.width,
     offsetY: event.clientY - rect.top - item.y * rect.height,
   };
