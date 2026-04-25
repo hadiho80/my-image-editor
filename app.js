@@ -501,6 +501,10 @@ function setState(mutator, options = {}) {
   }
   if (renderMode === "editor") {
     renderEditorSurfaceOnly();
+    return;
+  }
+  if (renderMode === "surfaces") {
+    renderEditorSurfacesOnly();
   }
 }
 
@@ -1411,7 +1415,9 @@ function renderMobileToolPanel() {
         </div>
         <div class="mobile-tool-actions">
           <button class="mini-button" data-mobile-action="reset-slot">Reset Crop</button>
-          <button class="mini-button" data-mobile-action="open-frame">Panel Desktop</button>
+          <button class="mini-button" data-mobile-action="zoom-out-canvas">Zoom -</button>
+          <button class="mini-button mini-button--dark" data-mobile-action="zoom-reset-canvas">${Math.round(canvasViewportZoom * 100)}%</button>
+          <button class="mini-button" data-mobile-action="zoom-in-canvas">Zoom +</button>
         </div>
       </div>`,
     sticker: `
@@ -1650,6 +1656,15 @@ function renderMobileToolPanel() {
       } else if (action === "reset-slot") {
         resetSlotButton.click();
         return;
+      } else if (action === "zoom-out-canvas") {
+        applyCanvasViewportZoom(canvasViewportZoom - 0.1);
+        return;
+      } else if (action === "zoom-reset-canvas") {
+        applyCanvasViewportZoom(1);
+        return;
+      } else if (action === "zoom-in-canvas") {
+        applyCanvasViewportZoom(canvasViewportZoom + 0.1);
+        return;
       } else if (action === "upload-for-slot") {
         if (pendingSlotIndex === null) setPendingSlotAssignment(state.selectedSlotIndex);
         photoInput.click();
@@ -1718,212 +1733,215 @@ function renderMobileToolPanel() {
     if (!node) return;
     node.addEventListener(eventName, handler);
   };
+  const updateMobileState = (mutator, options = {}) => {
+    setState(mutator, { trackHistory: false, renderMode: "surfaces", ...options });
+  };
 
   bindInput("#mobileBgColor", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.backgroundColor = event.target.value;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileGapInput", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.gap = Number(event.target.value);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileRadiusInput", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.radius = Number(event.target.value);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileFrameBorderEnabled", "change", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.frameBorder.enabled = event.target.checked;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileFrameBorderColor", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.frameBorder.color = event.target.value;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileFrameBorderSize", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.frameBorder.size = Number(event.target.value);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileFrameBorderStyle", "change", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.frameBorder.style = event.target.value;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileSlotWidth", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       resizeSlotByPercent(draft.selectedSlotIndex, "width", Number(event.target.value), draft);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileSlotHeight", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       resizeSlotByPercent(draft.selectedSlotIndex, "height", Number(event.target.value), draft);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileSlotZoom", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.slotEdits[draft.selectedSlotIndex] = {
         ...getSlotEdit(draft.selectedSlotIndex, draft),
         zoom: Number(event.target.value) / 100,
       };
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileSlotOffsetX", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.slotEdits[draft.selectedSlotIndex] = {
         ...getSlotEdit(draft.selectedSlotIndex, draft),
         offsetX: Number(event.target.value) / 100,
       };
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileSlotOffsetY", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       draft.slotEdits[draft.selectedSlotIndex] = {
         ...getSlotEdit(draft.selectedSlotIndex, draft),
         offsetY: Number(event.target.value) / 100,
       };
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileStickerSize", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.stickers.find((item) => item.id === draft.selectedStickerId);
       if (current) current.size = Number(event.target.value);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileStickerRotation", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.stickers.find((item) => item.id === draft.selectedStickerId);
       if (current) current.rotation = Number(event.target.value);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextInput", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.text = event.target.value;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextSize", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.size = Number(event.target.value);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextRotation", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.rotation = Number(event.target.value);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextColor", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.color = event.target.value;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextBgColor", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.bgColor = event.target.value;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextBgTransparent", "change", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (!current) return;
       current.bgColor = event.target.checked ? TRANSPARENT_TEXT_BG : "#000000";
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextBgRounded", "change", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.bgRadius = event.target.checked ? 999 : 0;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextBgRadius", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.bgRadius = Number(event.target.value);
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextBorderEnabled", "change", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (!current) return;
       current.border = { enabled: event.target.checked, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
       current.border.enabled = event.target.checked;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextBorderColor", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (!current) return;
       current.border = { enabled: true, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
       current.border.color = event.target.value;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextBorderSize", "input", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (!current) return;
       current.border = { enabled: Number(event.target.value) > 0, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
       current.border.size = Number(event.target.value);
       current.border.enabled = current.border.size > 0 && current.border.enabled !== false;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextBorderStyle", "change", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (!current) return;
       current.border = { enabled: true, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
       current.border.style = event.target.value;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextBold", "change", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.fontWeight = event.target.checked ? "bold" : "normal";
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextItalic", "change", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.fontStyle = event.target.checked ? "italic" : "normal";
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileTextUnderline", "change", (event) => {
-    setState((draft) => {
+    updateMobileState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.underline = event.target.checked;
-    }, { trackHistory: false });
+    });
   });
   bindInput("#mobileBrightness", "input", (event) => {
-    setState((draft) => { draft.filter.brightness = Number(event.target.value); }, { trackHistory: false });
+    updateMobileState((draft) => { draft.filter.brightness = Number(event.target.value); });
   });
   bindInput("#mobileContrast", "input", (event) => {
-    setState((draft) => { draft.filter.contrast = Number(event.target.value); }, { trackHistory: false });
+    updateMobileState((draft) => { draft.filter.contrast = Number(event.target.value); });
   });
   bindInput("#mobileSaturate", "input", (event) => {
-    setState((draft) => { draft.filter.saturate = Number(event.target.value); }, { trackHistory: false });
+    updateMobileState((draft) => { draft.filter.saturate = Number(event.target.value); });
   });
   bindInput("#mobileBlur", "input", (event) => {
-    setState((draft) => { draft.filter.blur = Number(event.target.value); }, { trackHistory: false });
+    updateMobileState((draft) => { draft.filter.blur = Number(event.target.value); });
   });
   bindInput("#mobileDrawToggle", "change", (event) => {
-    setState((draft) => { draft.drawingEnabled = event.target.checked; }, { trackHistory: false });
+    updateMobileState((draft) => { draft.drawingEnabled = event.target.checked; });
     if (!event.target.checked) mobileTool = "layer";
   });
   bindInput("#mobileBrushColor", "input", (event) => {
-    setState((draft) => { draft.brush.color = event.target.value; }, { trackHistory: false });
+    updateMobileState((draft) => { draft.brush.color = event.target.value; });
   });
   bindInput("#mobileBrushSize", "input", (event) => {
-    setState((draft) => { draft.brush.size = Number(event.target.value); }, { trackHistory: false });
+    updateMobileState((draft) => { draft.brush.size = Number(event.target.value); });
   });
   bindInput("#mobileEraserToggle", "change", (event) => {
-    setState((draft) => { draft.brush.eraser = event.target.checked; }, { trackHistory: false });
+    updateMobileState((draft) => { draft.brush.eraser = event.target.checked; });
   });
 }
 
@@ -1974,6 +1992,8 @@ function renderStageContents(stageElement, { interactive = false, allowResize = 
   if (!stageElement) return;
 
   const isDesktopStage = stageElement.classList.contains("editor-stage--desktop");
+  const isMobileEditorStage = stageElement === mobileEditorPreview;
+  const isZoomableStage = isDesktopStage || isMobileEditorStage;
   const viewportElement = isDesktopStage
     ? stageElement.closest(".desktop-canvas-zone") || stageElement.parentElement
     : stageElement.parentElement;
@@ -1989,8 +2009,8 @@ function renderStageContents(stageElement, { interactive = false, allowResize = 
   const desktopScale = clamp(availableWidth / 1080, 0.38, 0.9);
   const baseTargetWidth = isDesktopStage ? state.canvasWidth * desktopScale : availableWidth;
   const baseTargetHeight = isDesktopStage ? state.canvasHeight * desktopScale : availableWidth * (state.canvasHeight / state.canvasWidth);
-  const targetWidth = isDesktopStage ? baseTargetWidth * canvasViewportZoom : baseTargetWidth;
-  const targetHeight = isDesktopStage ? baseTargetHeight * canvasViewportZoom : baseTargetHeight;
+  const targetWidth = isZoomableStage ? baseTargetWidth * canvasViewportZoom : baseTargetWidth;
+  const targetHeight = isZoomableStage ? baseTargetHeight * canvasViewportZoom : baseTargetHeight;
   stageElement.style.width = `${targetWidth}px`;
   stageElement.style.height = `${targetHeight}px`;
   stageElement.style.aspectRatio = "auto";
@@ -2288,6 +2308,19 @@ function renderEditorSurfaceOnly() {
   positionSelectionActions(editorStage, selectionActions);
   positionSelectionActions(mobileEditorPreview, mobileSelectionActions);
   syncDeleteLabels();
+}
+
+function renderEditorSurfacesOnly() {
+  renderStage();
+  renderStageContents(mobileEditorPreview, { interactive: mobileView === "editor", allowResize: mobileView === "editor", applySelection: false });
+  renderStageContents(mobileSharePreview, { interactive: false });
+  restoreMobileDrawingLayer();
+  renderExportPresetUI();
+  applySelectionActionsVisibility();
+  positionSelectionActions(editorStage, selectionActions);
+  positionSelectionActions(mobileEditorPreview, mobileSelectionActions);
+  syncDeleteLabels();
+  scheduleAutosave();
 }
 
 function resizeDrawingSurface(canvas, stageElement) {

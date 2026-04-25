@@ -439,6 +439,7 @@ button {
   min-height: 70vh;
   padding: 16px;
   border-radius: 24px;
+  overflow: auto;
   background:
     radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d1a 100%),
     rgba(0, 0, 0, 0.12);
@@ -804,6 +805,10 @@ button {
   padding: 0;
 }
 
+.mobile-controls input[type="range"] {
+  touch-action: pan-x;
+}
+
 .mobile-shells {
   display: none;
 }
@@ -856,6 +861,19 @@ button {
 .mobile-panel--editor,
 .mobile-share-panel {
   padding-top: calc(18px + env(safe-area-inset-top));
+}
+
+.mobile-panel--editor .editor-stage-wrap {
+  justify-content: flex-start;
+  align-items: flex-start;
+  min-height: 48vh;
+  max-height: 58vh;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-panel--editor .editor-stage {
+  flex: 0 0 auto;
+  margin: auto;
 }
 
 .mobile-topbar,
@@ -1648,6 +1666,15 @@ button {
   .transform-handle {
     width: 26px;
     height: 26px;
+  }
+
+  .phone-stage--editor .slot__resize {
+    right: 4px;
+    bottom: 4px;
+    width: 34px;
+    height: 34px;
+    border-width: 3px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.38);
   }
 
   .transform-handle--scale {
