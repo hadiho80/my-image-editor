@@ -987,9 +987,17 @@ button {
   white-space: nowrap;
 }
 
+.phone-stage--editor .mobile-editor-title {
+  flex: 0 1 116px;
+}
+
+.phone-stage--editor .compact-btn {
+  padding-inline: 8px;
+}
+
 .compact-btn {
   flex-shrink: 0;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 8px;
   font-size: 0.7rem;
   font-weight: 600;
@@ -998,6 +1006,12 @@ button {
 .compact-btn--ghost {
   background: rgba(255, 255, 255, 0.08);
   color: var(--muted);
+}
+
+.compact-btn--dark {
+  background: rgba(15, 16, 31, 0.9);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .compact-btn--accent {

@@ -349,7 +349,8 @@ const mobileNavButtons = Array.from(document.querySelectorAll("[data-mobile-view
 const mobileEditorBackButton = document.querySelector(".phone-stage--editor .back-btn");
 const mobileShareBackButton = document.querySelector(".phone-stage--share .back-btn");
 const mobileEditorUndoButton = document.querySelector(".phone-stage--editor .compact-btn--ghost");
-const mobileEditorExportButton = document.querySelector(".phone-stage--editor .compact-btn--accent");
+const mobileEditorSaveButton = document.querySelector("#mobileEditorSaveButton");
+const mobileEditorShareButton = document.querySelector("#mobileEditorShareButton");
 const mobileControls = document.querySelector("#mobileControls");
 const mobileEditorTitle = document.querySelector(".phone-stage--editor .mobile-editor-title");
 const desktopProjectName = document.querySelector(".desktop-project-name");
@@ -2894,6 +2895,11 @@ async function shareCompositePng() {
   const options = getImageExportOptions("png");
   const blob = await exportCompositeBlob(options.mimeType, options.quality, getExportSize());
   const file = new File([blob], getOutputFilename(options.format), { type: options.mimeType });
+  if (window.AndroidImageEditor?.shareImage) {
+    const dataUrl = await blobToDataUrl(blob);
+    window.AndroidImageEditor.shareImage(dataUrl, file.name, options.mimeType);
+    return;
+  }
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({
@@ -2914,6 +2920,11 @@ async function saveCompositeAsDeviceImage({ preferShare = false, format = getSel
   const blob = await exportCompositeBlob(options.mimeType, options.quality, getExportSize());
   const filename = getOutputFilename(options.format);
   const file = new File([blob], filename, { type: options.mimeType });
+  if (window.AndroidImageEditor?.saveImage) {
+    const dataUrl = await blobToDataUrl(blob);
+    window.AndroidImageEditor.saveImage(dataUrl, filename, options.mimeType);
+    return;
+  }
 
   if (preferShare && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
@@ -4381,12 +4392,20 @@ function setupEventListeners() {
   mobileEditorUndoButton?.addEventListener("click", () => {
     undoButton.click();
   });
-  mobileEditorExportButton?.addEventListener("click", async () => {
+  mobileEditorSaveButton?.addEventListener("click", async () => {
+    try {
+      await saveCompositeAsDeviceImage({ preferShare: true });
+    } catch (error) {
+      console.error(error);
+      window.alert("Simpan ke galeri gagal. Coba pilih Share atau ulangi.");
+    }
+  });
+  mobileEditorShareButton?.addEventListener("click", async () => {
     try {
       await shareCompositePng();
     } catch (error) {
       console.error(error);
-      window.alert("Export gagal. Coba lagi.");
+      window.alert("Share gagal. Coba lagi.");
     }
   });
 

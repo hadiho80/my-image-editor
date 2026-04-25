@@ -8,11 +8,18 @@ if (-not (Test-Path $distPath)) {
     throw "Folder dist belum ada. Jalankan npm run build dulu."
 }
 
-if (Test-Path $androidAssetsPath) {
-    Remove-Item -Recurse -Force $androidAssetsPath
+if (-not (Test-Path $androidAssetsPath)) {
+    New-Item -ItemType Directory -Path $androidAssetsPath | Out-Null
+} else {
+    Get-ChildItem -Path $androidAssetsPath -Force | ForEach-Object {
+        try {
+            Remove-Item -LiteralPath $_.FullName -Recurse -Force -ErrorAction Stop
+        } catch {
+            Write-Warning "Lewati file yang sedang dipakai: $($_.FullName)"
+        }
+    }
 }
 
-New-Item -ItemType Directory -Path $androidAssetsPath | Out-Null
 Copy-Item -Path (Join-Path $distPath "*") -Destination $androidAssetsPath -Recurse -Force
 
 Write-Host "Aset Android berhasil disinkronkan ke $androidAssetsPath"
