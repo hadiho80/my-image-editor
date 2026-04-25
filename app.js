@@ -686,17 +686,7 @@ function syncInputs() {
   frameBorderStyleInput.value = state.frameBorder.style || "solid";
   canvasWidthInput.value = String(state.canvasWidth);
   canvasHeightInput.value = String(state.canvasHeight);
-  const ratioKey = `${state.canvasWidth}:${state.canvasHeight}`;
-  const normalizedRatio = state.canvasWidth === state.canvasHeight
-    ? "1:1"
-    : ratioKey === "1080:1350"
-      ? "4:5"
-      : ratioKey === "1080:1920"
-        ? "9:16"
-        : ratioKey === "1600:900"
-          ? "16:9"
-          : "custom";
-  canvasRatioInput.value = normalizedRatio;
+  canvasRatioInput.value = currentCanvasRatioKey();
   slotWidthInput.value = String(Math.round((currentSlot?.width || 0.5) * 100));
   slotHeightInput.value = String(Math.round((currentSlot?.height || 0.5) * 100));
   drawToggle.checked = state.drawingEnabled;
@@ -1395,6 +1385,15 @@ function renderMobileToolPanel() {
         <strong>Frame aktif</strong>
         <p>Template: ${state.templateId}. Canvas ${state.canvasWidth} x ${state.canvasHeight}px.</p>
         <div class="mobile-tool-grid">
+          <label class="field"><span>Ratio Canvas</span><select id="mobileCanvasRatio">
+            <option value="custom" ${currentCanvasRatioKey() === "custom" ? "selected" : ""}>Custom</option>
+            <option value="1:1" ${currentCanvasRatioKey() === "1:1" ? "selected" : ""}>1:1 Square</option>
+            <option value="4:5" ${currentCanvasRatioKey() === "4:5" ? "selected" : ""}>4:5 Portrait</option>
+            <option value="9:16" ${currentCanvasRatioKey() === "9:16" ? "selected" : ""}>9:16 Story</option>
+            <option value="16:9" ${currentCanvasRatioKey() === "16:9" ? "selected" : ""}>16:9 Landscape</option>
+          </select></label>
+          <label class="field"><span>Lebar Canvas</span><input id="mobileCanvasWidth" type="number" min="320" max="3000" step="10" value="${state.canvasWidth}" /></label>
+          <label class="field"><span>Tinggi Canvas</span><input id="mobileCanvasHeight" type="number" min="320" max="3000" step="10" value="${state.canvasHeight}" /></label>
           <label class="field"><span>Background</span><input id="mobileBgColor" type="color" value="${state.backgroundColor}" /></label>
           <label class="field"><span>Gap</span><input id="mobileGapInput" type="range" min="0" max="32" step="1" value="${state.gap}" /></label>
           <label class="field"><span>Radius</span><input id="mobileRadiusInput" type="range" min="0" max="40" step="1" value="${state.radius}" /></label>
@@ -1736,6 +1735,30 @@ function renderMobileToolPanel() {
   const updateMobileState = (mutator, options = {}) => {
     setState(mutator, { trackHistory: false, renderMode: "surfaces", ...options });
   };
+
+  bindInput("#mobileCanvasRatio", "change", (event) => {
+    updateMobileState((draft) => {
+      applyCanvasRatio(event.target.value, draft);
+    });
+    const widthNode = mobileControls.querySelector("#mobileCanvasWidth");
+    const heightNode = mobileControls.querySelector("#mobileCanvasHeight");
+    if (widthNode) widthNode.value = String(state.canvasWidth);
+    if (heightNode) heightNode.value = String(state.canvasHeight);
+  });
+  bindInput("#mobileCanvasWidth", "input", (event) => {
+    updateMobileState((draft) => {
+      draft.canvasWidth = clamp(Number(event.target.value) || draft.canvasWidth, 320, 3000);
+    });
+    const ratioNode = mobileControls.querySelector("#mobileCanvasRatio");
+    if (ratioNode) ratioNode.value = currentCanvasRatioKey();
+  });
+  bindInput("#mobileCanvasHeight", "input", (event) => {
+    updateMobileState((draft) => {
+      draft.canvasHeight = clamp(Number(event.target.value) || draft.canvasHeight, 320, 3000);
+    });
+    const ratioNode = mobileControls.querySelector("#mobileCanvasRatio");
+    if (ratioNode) ratioNode.value = currentCanvasRatioKey();
+  });
 
   bindInput("#mobileBgColor", "input", (event) => {
     updateMobileState((draft) => {
@@ -2867,6 +2890,15 @@ function applyCanvasRatio(value, draft = state) {
   [draft.canvasWidth, draft.canvasHeight] = next;
 }
 
+function currentCanvasRatioKey() {
+  const ratioKey = `${state.canvasWidth}:${state.canvasHeight}`;
+  if (state.canvasWidth === state.canvasHeight) return "1:1";
+  if (ratioKey === "1080:1350") return "4:5";
+  if (ratioKey === "1080:1920") return "9:16";
+  if (ratioKey === "1600:900") return "16:9";
+  return "custom";
+}
+
 function autoLayoutUploadedPhotos(photoEntries, draft = state) {
   if (!photoEntries.length) return;
   draft.templateId = `auto-${photoEntries.length}`;
@@ -3975,6 +4007,11 @@ function setupMobilePullToRefresh() {
   window.addEventListener("touchcancel", () => { pull = null; }, { passive: true });
 }
 
+function isMobileControlEditing() {
+  const active = document.activeElement;
+  return Boolean(active?.closest?.("#mobileControls") && active.matches?.("input, textarea, select"));
+}
+
 function setupEventListeners() {
   window.addEventListener("pointermove", (event) => {
     if (activeRightbarResize) {
@@ -4510,7 +4547,13 @@ function setupEventListeners() {
     deferredPrompt = null;
     installAppButton.classList.add("hidden");
   });
-  window.addEventListener("resize", renderAll);
+  window.addEventListener("resize", () => {
+    if (matchMedia("(max-width: 760px)").matches && isMobileControlEditing()) {
+      window.requestAnimationFrame(renderEditorSurfacesOnly);
+      return;
+    }
+    renderAll();
+  });
 }
 
 function registerServiceWorker() {
