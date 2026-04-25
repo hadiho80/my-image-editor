@@ -88,10 +88,17 @@ function createTextLayer(overrides = {}) {
     rotation: 0,
     color: "#ffffff",
     bgColor: TRANSPARENT_TEXT_BG,
+    bgRadius: 999,
     fontFamily: fontChoices[0],
     fontWeight: "normal",
     fontStyle: "normal",
     underline: false,
+    border: {
+      enabled: true,
+      size: 2,
+      color: "#ff6b4a",
+      style: "solid",
+    },
     ...overrides,
   };
 }
@@ -290,8 +297,15 @@ const textNormalButton = document.querySelector("#textNormalButton");
 const textBoldInput = document.querySelector("#textBoldInput");
 const textItalicInput = document.querySelector("#textItalicInput");
 const textUnderlineInput = document.querySelector("#textUnderlineInput");
+const textBorderEnabledInput = document.querySelector("#textBorderEnabledInput");
+const textBorderColorInput = document.querySelector("#textBorderColorInput");
+const textBorderSizeInput = document.querySelector("#textBorderSizeInput");
+const textBorderStyleInput = document.querySelector("#textBorderStyleInput");
 const textBgColorInput = document.querySelector("#textBgColorInput");
 const textBgColorValue = document.querySelector("#textBgColorValue");
+const textBgTransparentInput = document.querySelector("#textBgTransparentInput");
+const textBgRoundedInput = document.querySelector("#textBgRoundedInput");
+const textBgRadiusInput = document.querySelector("#textBgRadiusInput");
 const textPosXInput = document.querySelector("#textPosXInput");
 const textPosYInput = document.querySelector("#textPosYInput");
 const stickerSizeInput = document.querySelector("#stickerSizeInput");
@@ -311,6 +325,7 @@ const mobileSharePreview = document.querySelector("#mobileSharePreview");
 const mobileSavePlatformButton = document.querySelector("#mobileSavePlatformButton");
 const mobileSaveGalleryButton = document.querySelector("#mobileSaveGalleryButton");
 const mobileStages = Array.from(document.querySelectorAll(".phone-stage"));
+const mobileShells = document.querySelector(".mobile-shells");
 const mobileNavButtons = Array.from(document.querySelectorAll("[data-mobile-view]"));
 const mobileEditorBackButton = document.querySelector(".phone-stage--editor .back-btn");
 const mobileShareBackButton = document.querySelector(".phone-stage--share .back-btn");
@@ -697,8 +712,15 @@ function syncInputs() {
   textBoldInput.checked = (currentText?.fontWeight || "normal") === "bold";
   textItalicInput.checked = (currentText?.fontStyle || "normal") === "italic";
   textUnderlineInput.checked = Boolean(currentText?.underline);
+  textBorderEnabledInput.checked = Boolean(currentText?.border?.enabled);
+  textBorderColorInput.value = currentText?.border?.color || "#ff6b4a";
+  textBorderSizeInput.value = String(currentText?.border?.size ?? 2);
+  textBorderStyleInput.value = currentText?.border?.style || "solid";
   textBgColorValue.value = currentText?.bgColor || TRANSPARENT_TEXT_BG;
   textBgColorInput.value = colorForInputValue(currentText?.bgColor || TRANSPARENT_TEXT_BG);
+  textBgTransparentInput.checked = normalizeTextBgColor(currentText?.bgColor || TRANSPARENT_TEXT_BG) === TRANSPARENT_TEXT_BG;
+  textBgRoundedInput.checked = (currentText?.bgRadius ?? 999) > 0;
+  textBgRadiusInput.value = String(Math.min(80, currentText?.bgRadius ?? 80));
   textPosXInput.value = String(Math.round((currentText?.x ?? 0.5) * 100));
   textPosYInput.value = String(Math.round((currentText?.y ?? 0.9) * 100));
   textLayerInput.disabled = !currentText;
@@ -710,8 +732,15 @@ function syncInputs() {
   textBoldInput.disabled = !currentText;
   textItalicInput.disabled = !currentText;
   textUnderlineInput.disabled = !currentText;
+  textBorderEnabledInput.disabled = !currentText;
+  textBorderColorInput.disabled = !currentText;
+  textBorderSizeInput.disabled = !currentText;
+  textBorderStyleInput.disabled = !currentText;
   textBgColorInput.disabled = !currentText;
   textBgColorValue.disabled = !currentText;
+  textBgTransparentInput.disabled = !currentText;
+  textBgRoundedInput.disabled = !currentText;
+  textBgRadiusInput.disabled = !currentText || normalizeTextBgColor(currentText?.bgColor || TRANSPARENT_TEXT_BG) === TRANSPARENT_TEXT_BG;
   textPosXInput.disabled = !currentText;
   textPosYInput.disabled = !currentText;
   deleteTextLayerButton.disabled = !currentText;
@@ -1420,10 +1449,22 @@ function renderMobileToolPanel() {
         </div>
         <div class="mobile-tool-grid">
           <label class="field"><span>Isi teks</span><input id="mobileTextInput" type="text" maxlength="60" value="${(currentText?.text || "").replace(/"/g, "&quot;")}" ${currentText ? "" : "disabled"} /></label>
-          <label class="field"><span>Ukuran</span><input id="mobileTextSize" type="range" min="18" max="72" step="1" value="${textSize}" ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>Ukuran Font</span><input id="mobileTextSize" type="range" min="18" max="72" step="1" value="${textSize}" ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>Rotasi</span><input id="mobileTextRotation" type="range" min="-180" max="180" step="1" value="${textRotation}" ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>Warna</span><input id="mobileTextColor" type="color" value="${textColor}" ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>BG Text</span><input id="mobileTextBgColor" type="color" value="${bgColor}" ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>BG Transparan</span><input id="mobileTextBgTransparent" type="checkbox" ${normalizeTextBgColor(currentText?.bgColor || TRANSPARENT_TEXT_BG) === TRANSPARENT_TEXT_BG ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>Rounded BG</span><input id="mobileTextBgRounded" type="checkbox" ${(currentText?.bgRadius ?? 999) > 0 ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>Radius BG</span><input id="mobileTextBgRadius" type="range" min="0" max="80" step="1" value="${Math.min(80, currentText?.bgRadius ?? 80)}" ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>Border</span><input id="mobileTextBorderEnabled" type="checkbox" ${currentText?.border?.enabled ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>Warna Frame</span><input id="mobileTextBorderColor" type="color" value="${currentText?.border?.color || "#ff6b4a"}" ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>Ukuran Border</span><input id="mobileTextBorderSize" type="range" min="0" max="12" step="1" value="${currentText?.border?.size ?? 2}" ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>Style Border</span><select id="mobileTextBorderStyle" ${currentText ? "" : "disabled"}>
+            <option value="solid" ${currentText?.border?.style === "solid" ? "selected" : ""}>Solid</option>
+            <option value="dashed" ${currentText?.border?.style === "dashed" ? "selected" : ""}>Dashed</option>
+            <option value="dotted" ${currentText?.border?.style === "dotted" ? "selected" : ""}>Dotted</option>
+            <option value="double" ${currentText?.border?.style === "double" ? "selected" : ""}>Double</option>
+          </select></label>
           <label class="field"><span>Bold</span><input id="mobileTextBold" type="checkbox" ${currentText?.fontWeight === "bold" ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>Italic</span><input id="mobileTextItalic" type="checkbox" ${currentText?.fontStyle === "italic" ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>Underline</span><input id="mobileTextUnderline" type="checkbox" ${currentText?.underline ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
@@ -1789,6 +1830,58 @@ function renderMobileToolPanel() {
       if (current) current.bgColor = event.target.value;
     }, { trackHistory: false });
   });
+  bindInput("#mobileTextBgTransparent", "change", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.bgColor = event.target.checked ? TRANSPARENT_TEXT_BG : "#000000";
+    }, { trackHistory: false });
+  });
+  bindInput("#mobileTextBgRounded", "change", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (current) current.bgRadius = event.target.checked ? 999 : 0;
+    }, { trackHistory: false });
+  });
+  bindInput("#mobileTextBgRadius", "input", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (current) current.bgRadius = Number(event.target.value);
+    }, { trackHistory: false });
+  });
+  bindInput("#mobileTextBorderEnabled", "change", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.border = { enabled: event.target.checked, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
+      current.border.enabled = event.target.checked;
+    }, { trackHistory: false });
+  });
+  bindInput("#mobileTextBorderColor", "input", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.border = { enabled: true, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
+      current.border.color = event.target.value;
+    }, { trackHistory: false });
+  });
+  bindInput("#mobileTextBorderSize", "input", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.border = { enabled: Number(event.target.value) > 0, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
+      current.border.size = Number(event.target.value);
+      current.border.enabled = current.border.size > 0 && current.border.enabled !== false;
+    }, { trackHistory: false });
+  });
+  bindInput("#mobileTextBorderStyle", "change", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.border = { enabled: true, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
+      current.border.style = event.target.value;
+    }, { trackHistory: false });
+  });
   bindInput("#mobileTextBold", "change", (event) => {
     setState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
@@ -2095,7 +2188,11 @@ function renderStageContents(stageElement, { interactive = false, allowResize = 
     node.style.fontWeight = text.fontWeight || "normal";
     node.style.fontStyle = text.fontStyle || "normal";
     node.style.textDecoration = text.underline ? "underline" : "none";
-    node.style.background = text.bgColor === TRANSPARENT_TEXT_BG ? "rgba(0, 0, 0, 0.18)" : text.bgColor;
+    node.style.background = text.bgColor === TRANSPARENT_TEXT_BG ? "transparent" : text.bgColor;
+    node.style.borderRadius = `${Math.min(999, text.bgRadius ?? 999)}px`;
+    node.style.border = text.border?.enabled && text.border?.size > 0
+      ? `${text.border.size}px ${text.border.style || "solid"} ${text.border.color || "#ff6b4a"}`
+      : "0";
     node.style.zIndex = text.id === state.selectedTextId && state.activeSelectionType === "text" ? "42" : String(30 + index);
     if (text.id === state.selectedTextId && state.activeSelectionType === "text") node.classList.add("is-active");
     if (interactive) {
@@ -2338,9 +2435,29 @@ async function exportCompositeBlob(type = "image/png", quality = 0.92, size = nu
       ctx.translate(x, y);
       ctx.rotate(((text.rotation || 0) * Math.PI) / 180);
       ctx.scale(text.scaleX || 1, text.scaleY || 1);
-      ctx.fillStyle = text.bgColor === TRANSPARENT_TEXT_BG ? "rgba(0,0,0,0.35)" : text.bgColor;
-      roundedRect(ctx, -textWidth / 2, -textHeight / 2, textWidth, textHeight, textHeight / 2);
-      ctx.fill();
+      const textRadius = Math.min(textHeight / 2, text.bgRadius === 999 ? textHeight / 2 : (text.bgRadius ?? 999) * 2);
+      if (text.bgColor !== TRANSPARENT_TEXT_BG) {
+        ctx.fillStyle = text.bgColor;
+        roundedRect(ctx, -textWidth / 2, -textHeight / 2, textWidth, textHeight, textRadius);
+        ctx.fill();
+      }
+      if (text.border?.enabled && text.border?.size > 0) {
+        const borderSize = Math.max(1, text.border.size * 2);
+        ctx.save();
+        ctx.strokeStyle = text.border.color || "#ff6b4a";
+        ctx.lineWidth = borderSize;
+        if (text.border.style === "dashed") ctx.setLineDash([borderSize * 5, borderSize * 3]);
+        if (text.border.style === "dotted") ctx.setLineDash([borderSize, borderSize * 2.3]);
+        roundedRect(ctx, -textWidth / 2, -textHeight / 2, textWidth, textHeight, textRadius);
+        ctx.stroke();
+        if (text.border.style === "double") {
+          ctx.setLineDash([]);
+          ctx.lineWidth = Math.max(1, borderSize * 0.55);
+          roundedRect(ctx, -textWidth / 2 + borderSize * 1.5, -textHeight / 2 + borderSize * 1.5, textWidth - borderSize * 3, textHeight - borderSize * 3, Math.max(0, textRadius - borderSize * 1.5));
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
       ctx.fillStyle = text.color;
       ctx.fillText(text.text, 0, 4);
       if (text.underline) {
@@ -2366,12 +2483,13 @@ async function exportCompositeBlob(type = "image/png", quality = 0.92, size = nu
 }
 
 function roundedRect(ctx, x, y, width, height, radius) {
+  const safeRadius = Math.max(0, Math.min(radius || 0, Math.abs(width) / 2, Math.abs(height) / 2));
   ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.arcTo(x + width, y, x + width, y + height, radius);
-  ctx.arcTo(x + width, y + height, x, y + height, radius);
-  ctx.arcTo(x, y + height, x, y, radius);
-  ctx.arcTo(x, y, x + width, y, radius);
+  ctx.moveTo(x + safeRadius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, safeRadius);
+  ctx.arcTo(x + width, y + height, x, y + height, safeRadius);
+  ctx.arcTo(x, y + height, x, y, safeRadius);
+  ctx.arcTo(x, y, x + width, y, safeRadius);
   ctx.closePath();
 }
 
@@ -2936,6 +3054,21 @@ function editTextLayerInline(textId, targetNode = null) {
   node.addEventListener("keydown", handleKeydown);
 }
 
+function openMobileTextEditor(textId) {
+  setState((draft) => {
+    draft.selectedTextId = textId;
+    draft.activeSelectionType = "text";
+  }, { trackHistory: false, renderMode: "none" });
+  mobileTool = "text";
+  renderMobileShell();
+  window.requestAnimationFrame(() => {
+    const input = mobileControls?.querySelector("#mobileTextInput");
+    if (!input) return;
+    input.focus({ preventScroll: true });
+    input.select?.();
+  });
+}
+
 function setupTextInteractions(node, textId, stageElement = editorStage) {
   const pointers = new Map();
 
@@ -2945,7 +3078,11 @@ function setupTextInteractions(node, textId, stageElement = editorStage) {
     if (event.detail >= 2) {
       event.preventDefault();
       event.stopPropagation();
-      editTextLayerInline(textId, node);
+      if (event.pointerType === "touch" || stageElement === mobileEditorPreview) {
+        openMobileTextEditor(textId);
+      } else {
+        editTextLayerInline(textId, node);
+      }
       return;
     }
     event.preventDefault();
@@ -3186,18 +3323,22 @@ function setupSlotGesture(node, slotIndex, stageElement = editorStage) {
     const rect = stageElement.getBoundingClientRect();
     pointers.set(event.pointerId, { x: event.clientX - rect.left, y: event.clientY - rect.top });
     node.setPointerCapture(event.pointerId);
-    longPressTimer = window.setTimeout(() => {
-      longPressTimer = null;
-      if (!state.slotAssignments[slotIndex]) return;
-      setState((draft) => {
-        draft.selectedSlotIndex = slotIndex;
-        draft.selectedPhotoId = draft.slotAssignments[slotIndex] || null;
-        draft.activeSelectionType = "slot";
-      }, { trackHistory: false, renderMode: "all" });
-      if (window.confirm(`Hapus foto dari Frame ${slotIndex + 1}?`)) {
-        deleteCurrentSelection();
-      }
-    }, 650);
+    if (pointers.size === 1 && event.pointerType === "touch") {
+      longPressTimer = window.setTimeout(() => {
+        longPressTimer = null;
+        if (pointers.size !== 1 || !state.slotAssignments[slotIndex]) return;
+        setState((draft) => {
+          draft.selectedSlotIndex = slotIndex;
+          draft.selectedPhotoId = draft.slotAssignments[slotIndex] || null;
+          draft.activeSelectionType = "slot";
+        }, { trackHistory: false, renderMode: "all" });
+        if (window.confirm(`Hapus foto dari Frame ${slotIndex + 1}?`)) {
+          deleteCurrentSelection();
+        }
+      }, 650);
+    } else {
+      clearLongPress();
+    }
     if (pointers.size === 1) {
       const edit = getSlotEdit(slotIndex);
       activeDrag = {
@@ -3211,6 +3352,7 @@ function setupSlotGesture(node, slotIndex, stageElement = editorStage) {
       };
     }
     if (pointers.size === 2) {
+      clearLongPress();
       const [a, b] = [...pointers.values()];
       activeDrag = {
         kind: "slot-pinch",
@@ -3551,7 +3693,12 @@ function finishGlobalTransformDrag() {
   }
   activeDrag = null;
   if (finishedDrag.kind === "layer-drag" && finishedDrag.type === "text" && !finishedDrag.moved) {
-    editTextLayerInline(finishedDrag.targetId, finishedDrag.layerNode);
+    const isMobileTextTap = finishedDrag.pointerType === "touch" || finishedDrag.stageElement === mobileEditorPreview;
+    if (isMobileTextTap) {
+      openMobileTextEditor(finishedDrag.targetId);
+    } else {
+      editTextLayerInline(finishedDrag.targetId, finishedDrag.layerNode);
+    }
     return;
   }
   pushHistory();
@@ -3590,14 +3737,23 @@ function startStagePointerInteraction(stageElement, event) {
   const stickerNode = event.target.closest(".sticker-instance");
   const drawingNode = event.target.closest(".drawing-preview");
   const layerNode = textNode || stickerNode || drawingNode;
-  if (!layerNode) return;
+  if (!layerNode) {
+    if (!event.target.closest(".slot, .selection-frame, .transform-handle")) {
+      clearSelection();
+    }
+    return;
+  }
 
   const type = textNode ? "text" : stickerNode ? "sticker" : "drawing";
   const id = textNode ? textNode.dataset.textId : stickerNode ? stickerNode.dataset.stickerId : "drawing-layer";
   if (type === "text" && event.detail >= 2) {
     event.preventDefault();
     event.stopPropagation();
-    editTextLayerInline(id, textNode);
+    if (event.pointerType === "touch" || stageElement === mobileEditorPreview) {
+      openMobileTextEditor(id);
+    } else {
+      editTextLayerInline(id, textNode);
+    }
     return;
   }
   const item = type === "text"
@@ -3624,6 +3780,7 @@ function startStagePointerInteraction(stageElement, event) {
     pointerId: event.pointerId,
     stageElement,
     layerNode,
+    pointerType: event.pointerType || "mouse",
     type,
     targetId: id,
     startClientX: event.clientX,
@@ -3742,6 +3899,47 @@ async function handleFiles(fileList) {
     if (!pendingSlotAssignment) autoLayoutUploadedPhotos(photoEntries, draft);
   });
   return photoEntries;
+}
+
+function setupMobilePullToRefresh() {
+  if (!mobileShells) return;
+  let pull = null;
+  const isEditableTarget = (target) => Boolean(target?.closest?.("input, textarea, select, [contenteditable='true']"));
+  const canStartPull = (event) => {
+    if (!window.matchMedia("(max-width: 760px)").matches) return false;
+    if (event.touches.length !== 1) return false;
+    if (isEditableTarget(event.target)) return false;
+    if (event.target?.closest?.(".editor-stage, .selection-actions, .transform-frame, .slot, .text-layer, .sticker-instance")) return false;
+    const scrollable = event.target?.closest?.(".mobile-controls, .phone-stage, .mobile-share-options");
+    if (scrollable && scrollable.scrollTop > 0) return false;
+    return window.scrollY <= 2 && document.documentElement.scrollTop <= 2;
+  };
+  const refreshMobileView = () => {
+    mobileShells.classList.add("is-refreshing");
+    refreshSavedProjects()
+      .catch(console.error)
+      .finally(() => {
+        renderAll();
+        window.setTimeout(() => mobileShells.classList.remove("is-refreshing"), 350);
+      });
+  };
+
+  window.addEventListener("touchstart", (event) => {
+    if (!canStartPull(event)) return;
+    pull = { startY: event.touches[0].clientY, triggered: false };
+  }, { passive: true });
+
+  window.addEventListener("touchmove", (event) => {
+    if (!pull || event.touches.length !== 1) return;
+    const deltaY = event.touches[0].clientY - pull.startY;
+    if (deltaY < 84 || pull.triggered) return;
+    pull.triggered = true;
+    event.preventDefault();
+    refreshMobileView();
+  }, { passive: false });
+
+  window.addEventListener("touchend", () => { pull = null; }, { passive: true });
+  window.addEventListener("touchcancel", () => { pull = null; }, { passive: true });
 }
 
 function setupEventListeners() {
@@ -4103,6 +4301,39 @@ function setupEventListeners() {
       if (current) current.underline = event.target.checked;
     }, { trackHistory: false });
   });
+  textBorderEnabledInput.addEventListener("change", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.border = { enabled: event.target.checked, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
+      current.border.enabled = event.target.checked;
+    }, { trackHistory: false });
+  });
+  textBorderColorInput.addEventListener("input", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.border = { enabled: true, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
+      current.border.color = event.target.value;
+    }, { trackHistory: false });
+  });
+  textBorderSizeInput.addEventListener("input", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.border = { enabled: Number(event.target.value) > 0, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
+      current.border.size = Number(event.target.value);
+      current.border.enabled = current.border.size > 0 && current.border.enabled !== false;
+    }, { trackHistory: false });
+  });
+  textBorderStyleInput.addEventListener("change", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.border = { enabled: true, size: 2, color: "#ff6b4a", style: "solid", ...(current.border || {}) };
+      current.border.style = event.target.value;
+    }, { trackHistory: false });
+  });
   textBgColorInput.addEventListener("input", (event) => {
     const color = event.target.value;
     textBgColorValue.value = color;
@@ -4110,6 +4341,25 @@ function setupEventListeners() {
     setState((draft) => {
       const current = draft.texts.find((item) => item.id === draft.selectedTextId);
       if (current) current.bgColor = color;
+    }, { trackHistory: false });
+  });
+  textBgTransparentInput.addEventListener("change", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (!current) return;
+      current.bgColor = event.target.checked ? TRANSPARENT_TEXT_BG : colorForInputValue(textBgColorInput.value || "#000000");
+    }, { trackHistory: false });
+  });
+  textBgRoundedInput.addEventListener("change", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (current) current.bgRadius = event.target.checked ? 999 : 0;
+    }, { trackHistory: false });
+  });
+  textBgRadiusInput.addEventListener("input", (event) => {
+    setState((draft) => {
+      const current = draft.texts.find((item) => item.id === draft.selectedTextId);
+      if (current) current.bgRadius = Number(event.target.value);
     }, { trackHistory: false });
   });
   textBgColorValue.addEventListener("input", (event) => {
@@ -4258,6 +4508,7 @@ async function bootstrap() {
   populateFonts();
   setupDrawingSurface(drawingCanvas);
   setupDrawingSurface(mobileDrawingCanvas);
+  setupMobilePullToRefresh();
   setupEventListeners();
 
   const draft = localStorage.getItem(DRAFT_STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);

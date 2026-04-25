@@ -106,6 +106,7 @@
 
             <div class="mobile-tabs">
               <button class="ttab active" data-mobile-tool="pointer" type="button">Pointer</button>
+              <button class="ttab" data-mobile-tool="frame" type="button">Frame</button>
               <button class="ttab" data-mobile-tool="sticker" type="button">Stiker</button>
               <button class="ttab" data-mobile-tool="text" type="button">Teks</button>
               <button class="ttab" data-mobile-tool="filter" type="button">Filter</button>
@@ -260,7 +261,7 @@
                 </label>
                 <div class="field-row">
                   <label class="field">
-                    <span>Ukuran</span>
+                    <span>Ukuran font</span>
                     <input id="textSizeInput" type="range" min="18" max="72" step="1" />
                   </label>
                   <label class="field">
@@ -299,6 +300,43 @@
                     </label>
                     <input id="textBgColorValue" type="text" maxlength="9" placeholder="#00000000" />
                   </div>
+                </label>
+                <div class="text-style-controls" aria-label="Bentuk background teks">
+                  <label class="toggle">
+                    <input id="textBgTransparentInput" type="checkbox" />
+                    <span>BG transparan</span>
+                  </label>
+                  <label class="toggle">
+                    <input id="textBgRoundedInput" type="checkbox" />
+                    <span>Rounded BG</span>
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Radius BG</span>
+                  <input id="textBgRadiusInput" type="range" min="0" max="80" step="1" />
+                </label>
+                <label class="toggle">
+                  <input id="textBorderEnabledInput" type="checkbox" />
+                  <span>Frame text</span>
+                </label>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Warna frame</span>
+                    <input id="textBorderColorInput" type="color" />
+                  </label>
+                  <label class="field">
+                    <span>Ukuran frame</span>
+                    <input id="textBorderSizeInput" type="range" min="0" max="12" step="1" />
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Style frame</span>
+                  <select id="textBorderStyleInput">
+                    <option value="solid">Solid</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="dotted">Dotted</option>
+                    <option value="double">Double</option>
+                  </select>
                 </label>
                 <div class="field-row">
                   <label class="field">

@@ -95,6 +95,73 @@ http://localhost:8080/my-image-editor/
 3. Pilih `Add to Home Screen`
 4. App akan tersimpan di home screen dan bisa dibuka fullscreen
 
+## Cara membuat app online gratis
+
+Project ini adalah app statis Vite, jadi bisa di-host gratis di Vercel, Netlify, Cloudflare Pages, atau GitHub Pages. Cara paling mudah adalah Vercel.
+
+### Opsi 1: Deploy ke Vercel lewat GitHub
+
+1. Pastikan project bisa build:
+
+```bash
+npm install
+npm run build
+```
+
+2. Push project ke GitHub:
+
+```bash
+git add .
+git commit -m "Initial my image editor"
+git branch -M main
+git remote add origin https://github.com/username/my-image-editor.git
+git push -u origin main
+```
+
+3. Buka [Vercel](https://vercel.com/) lalu login.
+4. Klik `Add New` lalu pilih `Project`.
+5. Import repository `my-image-editor` dari GitHub.
+6. Pakai setting berikut:
+
+```text
+Framework Preset: Vite
+Build Command: npm run build
+Output Directory: dist
+Install Command: npm install
+```
+
+7. Klik `Deploy`.
+8. Setelah selesai, Vercel memberi URL seperti:
+
+```text
+https://my-image-editor.vercel.app
+```
+
+9. Buka URL itu di Android Chrome atau iOS Safari. Setelah service worker aktif, app bisa di-install sebagai PWA dan dipakai offline setelah kunjungan pertama.
+
+### Opsi 2: Deploy ke Netlify gratis
+
+1. Push project ke GitHub.
+2. Buka [Netlify](https://www.netlify.com/).
+3. Pilih `Add new site` lalu `Import an existing project`.
+4. Pilih repository project.
+5. Pakai setting:
+
+```text
+Build command: npm run build
+Publish directory: dist
+```
+
+6. Klik `Deploy site`.
+
+### Catatan penting hosting online
+
+- Hosting online diperlukan kalau ingin orang lain membuka app lewat link.
+- Setelah app dibuka sekali dan service worker/cache aktif, fitur editor tetap bisa dipakai offline.
+- Foto dan project tersimpan lokal di browser pengguna, bukan di server Vercel/Netlify.
+- Kalau update kode dan deploy ulang, pengguna mungkin perlu refresh agar service worker mengambil versi baru.
+- Jangan push `node_modules`, `dist`, `.tmp`, keystore, atau file `.env`; semua itu sudah masuk `.gitignore`.
+
 ## Catatan penting Android dan iOS
 
 - `Web Share API` biasanya paling mulus di Android Chrome dan iOS Safari modern
@@ -117,13 +184,14 @@ http://localhost:8080/my-image-editor/
 9. Tambah stiker jika perlu, lalu pilih stikernya untuk atur ukuran dan rotasi
 10. Tambah satu atau beberapa text layer
 11. Atur warna background teks lewat color picker atau input warna
-12. Gunakan mouse wheel atau dua jari untuk membesarkan atau mengecilkan elemen aktif
-13. Gunakan tombol `Cancel` atau `Hapus` saat elemen sedang aktif
-14. Atur filter global
-15. Aktifkan mode draw bila ingin coret-coret
-16. Simpan project atau `Simpan Sebagai`
-17. Import atau export JSON project bila perlu
-18. Share hasil edit ke aplikasi lain jika browser mendukung
+12. Atur frame text bawaan: bisa dimatikan, diganti warna, ukuran, dan style `solid`, `dashed`, `dotted`, atau `double`
+13. Gunakan mouse wheel atau dua jari untuk membesarkan atau mengecilkan elemen aktif
+14. Gunakan tombol `Cancel` atau `Hapus` saat elemen sedang aktif
+15. Atur filter global
+16. Aktifkan mode draw bila ingin coret-coret
+17. Simpan project atau `Simpan Sebagai`
+18. Import atau export JSON project bila perlu
+19. Share hasil edit ke aplikasi lain jika browser mendukung
 
 ## Penyimpanan project
 
