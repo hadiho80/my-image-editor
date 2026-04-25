@@ -27,8 +27,16 @@ body {
   font-family: "DM Sans", "Segoe UI", "Trebuchet MS", sans-serif;
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(255, 87, 87, 0.16), transparent 28%),
-    radial-gradient(circle at top right, rgba(6, 214, 160, 0.15), transparent 28%),
+    radial-gradient(
+      circle at top left,
+      rgba(255, 87, 87, 0.16),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(6, 214, 160, 0.15),
+      transparent 28%
+    ),
     linear-gradient(180deg, #101022 0%, #070710 100%);
   overflow: hidden;
 }
@@ -65,7 +73,10 @@ button {
 .mini-button {
   cursor: pointer;
   border: none;
-  transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    background 0.15s ease;
 }
 
 .install-button:hover,
@@ -141,7 +152,11 @@ button {
   padding: 18px;
   border-radius: var(--radius-lg);
   border: 1.5px dashed rgba(255, 107, 74, 0.6);
-  background: linear-gradient(140deg, rgba(255, 107, 74, 0.14), rgba(255, 209, 102, 0.07));
+  background: linear-gradient(
+    140deg,
+    rgba(255, 107, 74, 0.14),
+    rgba(255, 209, 102, 0.07)
+  );
   cursor: pointer;
 }
 
@@ -438,7 +453,7 @@ button {
   align-items: center;
   min-height: 70vh;
   padding: 16px;
-  border-radius: 24px;
+  border-radius: 0px;
   overflow: auto;
   background:
     radial-gradient(ellipse at center, #1a1a2e 0%, #0d0d1a 100%),
@@ -449,14 +464,18 @@ button {
   position: relative;
   width: min(100%, var(--canvas-size));
   aspect-ratio: var(--stage-ratio, 1 / 1);
-  border-radius: 24px;
+  border-radius: 0;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     #1a1a2a;
-  background-size: auto, 28px 28px, 28px 28px, auto;
+  background-size:
+    auto,
+    28px 28px,
+    28px 28px,
+    auto;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
   touch-action: none;
 }
@@ -465,14 +484,14 @@ button {
   width: min(100%, 860px);
   max-width: none;
   flex: 0 0 auto;
-  border-radius: 12px;
+  border-radius: 0;
   border: 1.5px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
 }
 
 .editor-stage--mockup {
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .editor-stage.is-drawing {
@@ -593,7 +612,11 @@ button {
 
 .ghost-button[id*="delete"],
 .ghost-button[id*="Delete"] {
-  background: linear-gradient(135deg, rgba(255, 51, 51, 0.92), rgba(255, 122, 69, 0.88));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 51, 51, 0.92),
+    rgba(255, 122, 69, 0.88)
+  );
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
@@ -944,7 +967,7 @@ button {
 .back-btn {
   width: 34px;
   height: 34px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
 
@@ -973,7 +996,7 @@ button {
 }
 
 .compact-btn--ghost {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--muted);
 }
 
@@ -987,8 +1010,8 @@ button {
   right: 0;
   bottom: 0;
   display: flex;
-  background: rgba(13,13,26,0.95);
-  border-top: 1px solid rgba(255,255,255,0.07);
+  background: rgba(13, 13, 26, 0.95);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
   backdrop-filter: blur(12px);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -1199,13 +1222,21 @@ button {
 }
 
 .mock-slot--a,
-.preview-cell--a { background: linear-gradient(135deg, #3d1f5c, #6b35a8); }
+.preview-cell--a {
+  background: linear-gradient(135deg, #3d1f5c, #6b35a8);
+}
 .mock-slot--b,
-.preview-cell--b { background: linear-gradient(135deg, #1f3d5c, #357ab8); }
+.preview-cell--b {
+  background: linear-gradient(135deg, #1f3d5c, #357ab8);
+}
 .mock-slot--c,
-.preview-cell--c { background: linear-gradient(135deg, #5c3d1f, #b87835); }
+.preview-cell--c {
+  background: linear-gradient(135deg, #5c3d1f, #b87835);
+}
 .mock-slot--d,
-.preview-cell--d { background: linear-gradient(135deg, #1f5c3d, #35b878); }
+.preview-cell--d {
+  background: linear-gradient(135deg, #1f5c3d, #35b878);
+}
 
 .mock-sticker,
 .preview-sticker {
@@ -1236,7 +1267,7 @@ button {
   text-align: center;
   font-family: "Righteous", "Trebuchet MS", sans-serif;
   font-size: 0.95rem;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
 }
 
 .mobile-share-panel {
@@ -1255,8 +1286,8 @@ button {
   aspect-ratio: 1;
   border-radius: 18px;
   overflow: hidden;
-  border: 1.5px solid rgba(255,255,255,0.08);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
 
 .drawing-preview {
@@ -1287,7 +1318,7 @@ button {
 
 .q-opt.sel {
   border: 1.5px solid var(--accent);
-  background: rgba(255,87,87,0.1);
+  background: rgba(255, 87, 87, 0.1);
   color: var(--accent);
 }
 
@@ -1319,19 +1350,44 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
-.sp-wa { background: linear-gradient(135deg, #25d366, #128c7e); }
-.sp-ig { background: linear-gradient(45deg, #f09433,#e6683c,#dc2743,#cc2366,#bc1888); }
-.sp-fb { background: #1877f2; }
-.sp-tg { background: #26a5e4; }
-.sp-tw { background: #000; border: 1px solid rgba(255,255,255,0.15); }
-.sp-li { background: #0a66c2; }
-.sp-cp { background: #1e1e35; border: 1px solid rgba(255,255,255,0.1); }
-.sp-dl { background: linear-gradient(135deg, var(--accent), #ff8a8a); }
+.sp-wa {
+  background: linear-gradient(135deg, #25d366, #128c7e);
+}
+.sp-ig {
+  background: linear-gradient(
+    45deg,
+    #f09433,
+    #e6683c,
+    #dc2743,
+    #cc2366,
+    #bc1888
+  );
+}
+.sp-fb {
+  background: #1877f2;
+}
+.sp-tg {
+  background: #26a5e4;
+}
+.sp-tw {
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.sp-li {
+  background: #0a66c2;
+}
+.sp-cp {
+  background: #1e1e35;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.sp-dl {
+  background: linear-gradient(135deg, var(--accent), #ff8a8a);
+}
 
 .save-btn {
   padding: 14px;
@@ -1339,7 +1395,7 @@ button {
   border: 0;
   color: #fff;
   background: linear-gradient(90deg, var(--accent), #ff8a8a);
-  box-shadow: 0 8px 20px rgba(255,87,87,0.35);
+  box-shadow: 0 8px 20px rgba(255, 87, 87, 0.35);
   font-weight: 600;
 }
 
@@ -1367,7 +1423,7 @@ button {
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
     linear-gradient(90deg, rgba(255, 107, 74, 0.09), rgba(255, 154, 122, 0.02)),
     #1e1e35;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .desktop-project-name {
@@ -1432,13 +1488,36 @@ button {
   min-width: 56px;
 }
 
+.zoom-input {
+  width: 66px;
+  text-align: center;
+}
+
+.mobile-zoom-field {
+  display: grid;
+  gap: 4px;
+  min-width: 90px;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.mobile-zoom-field input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #22223a;
+  color: var(--text);
+  font-weight: 700;
+}
+
 .toolbar-pill:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
 .toolbar-pill--ghost {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: var(--muted);
 }
 
@@ -1463,7 +1542,7 @@ button {
 
 .desktop-left-rail {
   background: #1e1e35;
-  border-right: 1px solid rgba(255,255,255,0.07);
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1486,14 +1565,14 @@ button {
 }
 
 .rail-btn.active {
-  background: rgba(255,87,87,0.15);
+  background: rgba(255, 87, 87, 0.15);
   color: var(--accent);
 }
 
 .rail-sep {
   width: 28px;
   height: 1px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   margin: 4px 0;
 }
 
@@ -1520,10 +1599,14 @@ button {
   border-radius: 28px;
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 55%),
-    linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.01)
+    ),
     rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .editor-stage-wrap--desktop {
@@ -1536,7 +1619,7 @@ button {
 .desktop-right-panel {
   position: relative;
   border: 0;
-  border-left: 1px solid rgba(255,255,255,0.07);
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 0;
   box-shadow: none;
   background: #151525;
@@ -1563,14 +1646,22 @@ button {
   height: calc(100dvh - 58px);
   margin-left: -4px;
   cursor: col-resize;
-  background: linear-gradient(180deg, rgba(255, 209, 102, 0.08), rgba(255, 87, 87, 0.12));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 209, 102, 0.08),
+    rgba(255, 87, 87, 0.12)
+  );
   border-left: 1px solid rgba(255, 255, 255, 0.08);
   border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .rightbar-resize-handle:hover,
 .rightbar-resize-handle.is-dragging {
-  background: linear-gradient(180deg, rgba(255, 209, 102, 0.35), rgba(255, 87, 87, 0.28));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 209, 102, 0.35),
+    rgba(255, 87, 87, 0.28)
+  );
 }
 
 .desktop-body.is-rightbar-collapsed .rightbar-resize-handle {
@@ -1596,7 +1687,7 @@ button {
   display: none;
   gap: 14px;
   margin-bottom: 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   padding-bottom: 8px;
 }
 

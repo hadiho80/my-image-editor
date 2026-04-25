@@ -16,8 +16,8 @@
     <link rel="icon" type="image/svg+xml" href="/assets/icon-7X88pjyY.svg" />
     <link rel="apple-touch-icon" href="/assets/icon-192-DxdDlCEF.svg" />
     <title>FunPic</title>
-    <script type="module" crossorigin src="/assets/index-aaguDFVm.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CAp-Ydue.css">
+    <script type="module" crossorigin src="/assets/index-BmENDyjX.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DOtRaYSx.css">
   </head>
   <body>
     <div class="app-shell">
@@ -165,7 +165,7 @@
             <button id="redoButton" class="toolbar-pill toolbar-pill--ghost" type="button">&#8635; Redo</button>
             <div class="canvas-zoom-controls" aria-label="Zoom canvas">
               <button id="canvasZoomOutButton" class="toolbar-pill toolbar-pill--ghost" type="button">-</button>
-              <button id="canvasZoomResetButton" class="toolbar-pill toolbar-pill--dark" type="button">100%</button>
+              <input id="canvasZoomResetButton" class="toolbar-pill toolbar-pill--dark zoom-input" type="text" value="100%" inputmode="numeric" aria-label="Zoom canvas percent" />
               <button id="canvasZoomInButton" class="toolbar-pill toolbar-pill--ghost" type="button">+</button>
             </div>
             <button id="saveButton" class="toolbar-pill toolbar-pill--dark" type="button">&#128190; Save Project</button>
@@ -380,6 +380,26 @@
 
               <div id="section-frame" class="section-block">
                 <h3>Frame</h3>
+                <label class="field">
+                  <span>Template frame</span>
+                  <select id="desktopTemplatePreset">
+                    <option value="single">Single</option>
+                    <option value="two-up">2 x 1</option>
+                    <option value="triple">3 x 1</option>
+                    <option value="grid">2 x 2</option>
+                    <option value="custom-grid">Custom Grid</option>
+                  </select>
+                </label>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Custom row</span>
+                    <input id="desktopGridRows" type="number" min="1" max="10" step="1" value="2" />
+                  </label>
+                  <label class="field">
+                    <span>Custom column</span>
+                    <input id="desktopGridColumns" type="number" min="1" max="10" step="1" value="2" />
+                  </label>
+                </div>
                 <div class="field-row">
                   <label class="field">
                     <span>Background</span>

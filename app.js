@@ -135,6 +135,22 @@ function templateSlotsForCount(count) {
   });
 }
 
+function templateSlotsForGrid(rows, columns) {
+  const safeRows = clamp(Math.round(Number(rows) || 1), 1, 10);
+  const safeColumns = clamp(Math.round(Number(columns) || 1), 1, 10);
+  return Array.from({ length: safeRows * safeColumns }, (_, index) => {
+    const column = index % safeColumns;
+    const row = Math.floor(index / safeColumns);
+    return {
+      id: uid(`slot-${index}`),
+      x: column / safeColumns,
+      y: row / safeRows,
+      width: 1 / safeColumns,
+      height: 1 / safeRows,
+    };
+  });
+}
+
 function createDefaultState() {
   return {
     projectId: null,
@@ -200,7 +216,7 @@ let activePanelTab = "props";
 let rightbarWidth = clamp(Number(localStorage.getItem(RIGHTBAR_WIDTH_STORAGE_KEY)) || 340, 260, 560);
 let rightbarCollapsed = localStorage.getItem(RIGHTBAR_COLLAPSED_STORAGE_KEY) === "1";
 let activeRightbarResize = null;
-let canvasViewportZoom = clamp(Number(localStorage.getItem(CANVAS_ZOOM_STORAGE_KEY)) || 1, 0.4, 2.5);
+let canvasViewportZoom = clamp(Number(localStorage.getItem(CANVAS_ZOOM_STORAGE_KEY)) || 1, 0.1, 2.5);
 
 function initViewFromQuery() {
   const params = new URLSearchParams(window.location.search);
@@ -271,6 +287,9 @@ const frameBorderEnabledInput = document.querySelector("#frameBorderEnabledInput
 const frameBorderColorInput = document.querySelector("#frameBorderColorInput");
 const frameBorderSizeInput = document.querySelector("#frameBorderSizeInput");
 const frameBorderStyleInput = document.querySelector("#frameBorderStyleInput");
+const desktopTemplatePresetInput = document.querySelector("#desktopTemplatePreset");
+const desktopGridRowsInput = document.querySelector("#desktopGridRows");
+const desktopGridColumnsInput = document.querySelector("#desktopGridColumns");
 const canvasWidthInput = document.querySelector("#canvasWidthInput");
 const canvasHeightInput = document.querySelector("#canvasHeightInput");
 const canvasRatioInput = document.querySelector("#canvasRatioInput");
@@ -406,13 +425,26 @@ function applyRightbarLayout({ render = false } = {}) {
 }
 
 function applyCanvasViewportZoom(nextZoom, { render = true } = {}) {
-  canvasViewportZoom = clamp(nextZoom, 0.4, 2.5);
+  canvasViewportZoom = clamp(nextZoom, 0.1, 2.5);
   localStorage.setItem(CANVAS_ZOOM_STORAGE_KEY, String(canvasViewportZoom));
   const label = `${Math.round(canvasViewportZoom * 100)}%`;
-  if (canvasZoomResetButton) canvasZoomResetButton.textContent = label;
-  if (canvasZoomOutButton) canvasZoomOutButton.disabled = canvasViewportZoom <= 0.41;
+  if (canvasZoomResetButton) canvasZoomResetButton.value = label;
+  const mobileZoomInput = mobileControls?.querySelector("#mobileCanvasZoomInput");
+  if (mobileZoomInput) mobileZoomInput.value = String(Math.round(canvasViewportZoom * 100));
+  if (canvasZoomOutButton) canvasZoomOutButton.disabled = canvasViewportZoom <= 0.101;
   if (canvasZoomInButton) canvasZoomInButton.disabled = canvasViewportZoom >= 2.49;
   if (render) requestAnimationFrame(renderEditorSurfaceOnly);
+}
+
+function parseZoomPercent(value) {
+  const numeric = Number(String(value).replace(/[^\d.]/g, ""));
+  if (!Number.isFinite(numeric) || numeric <= 0) return Math.round(canvasViewportZoom * 100);
+  return clamp(numeric, 10, 250);
+}
+
+function commitZoomInputValue(value) {
+  const percent = parseZoomPercent(value);
+  applyCanvasViewportZoom(percent / 100);
 }
 
 function normalizeSnapshot(snapshot) {
@@ -518,6 +550,15 @@ function getCurrentSticker() {
 
 function getCurrentSlot() {
   return state.templateSlots[state.selectedSlotIndex] || null;
+}
+
+function inferGridSizeFromSlots(slots = state.templateSlots) {
+  const rows = new Set(slots.map((slot) => Number(slot.y.toFixed(4))));
+  const columns = new Set(slots.map((slot) => Number(slot.x.toFixed(4))));
+  return {
+    rows: clamp(rows.size || Math.round(Math.sqrt(slots.length)) || 1, 1, 10),
+    columns: clamp(columns.size || Math.ceil(slots.length / Math.max(1, rows.size || 1)) || 1, 1, 10),
+  };
 }
 
 function getSlotEdit(slotIndex, source = state) {
@@ -684,6 +725,12 @@ function syncInputs() {
   frameBorderColorInput.value = state.frameBorder.color || "#000000";
   frameBorderSizeInput.value = String(state.frameBorder.size ?? 2);
   frameBorderStyleInput.value = state.frameBorder.style || "solid";
+  if (desktopTemplatePresetInput) {
+    desktopTemplatePresetInput.value = state.templateId.startsWith("custom-grid") ? "custom-grid" : state.templateId;
+  }
+  const inferredGrid = inferGridSizeFromSlots();
+  if (desktopGridRowsInput) desktopGridRowsInput.value = String(inferredGrid.rows);
+  if (desktopGridColumnsInput) desktopGridColumnsInput.value = String(inferredGrid.columns);
   canvasWidthInput.value = String(state.canvasWidth);
   canvasHeightInput.value = String(state.canvasHeight);
   canvasRatioInput.value = currentCanvasRatioKey();
@@ -772,21 +819,28 @@ function createTemplateCard(template) {
   info.textContent = `${template.slots.length} slot`;
   button.append(grid, title, info);
   button.addEventListener("click", () => {
-    setState((draft) => {
-      draft.templateId = template.id;
-      draft.templateSlots = templateSlotsFor(template.id);
-      draft.selectedSlotIndex = 0;
-      draft.activeSelectionType = "slot";
-      const nextAssignments = {};
-      Object.entries(draft.slotAssignments)
-        .slice(0, draft.templateSlots.length)
-        .forEach(([slotIndex, photoId]) => {
-          nextAssignments[slotIndex] = photoId;
-        });
-      draft.slotAssignments = nextAssignments;
-    });
+    applyFrameTemplate(template.id);
   });
   return button;
+}
+
+function applyFrameTemplate(preset, rows = 2, columns = 2, options = {}) {
+  const safeRows = clamp(Number(rows) || 2, 1, 10);
+  const safeColumns = clamp(Number(columns) || 2, 1, 10);
+  setState((draft) => {
+    draft.templateId = preset === "custom-grid" ? `custom-grid-${safeRows}x${safeColumns}` : preset;
+    draft.templateSlots = preset === "custom-grid" ? templateSlotsForGrid(safeRows, safeColumns) : templateSlotsFor(preset);
+    draft.slotEdits = {};
+    draft.selectedSlotIndex = 0;
+    draft.activeSelectionType = "slot";
+    const nextAssignments = {};
+    Object.entries(draft.slotAssignments)
+      .slice(0, draft.templateSlots.length)
+      .forEach(([slotIndex, photoId]) => {
+        nextAssignments[slotIndex] = photoId;
+      });
+    draft.slotAssignments = nextAssignments;
+  }, { trackHistory: options.trackHistory !== false, renderMode: options.renderMode || "all" });
 }
 
 function renderTemplates() {
@@ -1369,6 +1423,10 @@ function renderMobileToolPanel() {
   const textRotation = Math.round(currentText?.rotation || 0);
   const textColor = currentText?.color || "#ffffff";
   const bgColor = colorForInputValue(currentText?.bgColor || TRANSPARENT_TEXT_BG);
+  const selectedSlot = getCurrentSlot();
+  const selectedSlotWidthPercent = Math.round((selectedSlot?.width || 0.5) * 100);
+  const selectedSlotHeightPercent = Math.round((selectedSlot?.height || 0.5) * 100);
+  const inferredGrid = inferGridSizeFromSlots();
 
   const templatesByTool = {
     pointer: `
@@ -1385,6 +1443,12 @@ function renderMobileToolPanel() {
         <strong>Frame aktif</strong>
         <p>Template: ${state.templateId}. Canvas ${state.canvasWidth} x ${state.canvasHeight}px.</p>
         <div class="mobile-tool-grid">
+          <label class="field"><span>Template Preset</span><select id="mobileTemplatePreset">
+            ${templates.map((template) => `<option value="${template.id}" ${state.templateId === template.id ? "selected" : ""}>${template.name}</option>`).join("")}
+            <option value="custom-grid" ${state.templateId.startsWith("custom-grid") ? "selected" : ""}>Custom Grid</option>
+          </select></label>
+          <label class="field"><span>Custom Row</span><input id="mobileGridRows" type="number" min="1" max="10" step="1" value="${inferredGrid.rows}" /></label>
+          <label class="field"><span>Custom Column</span><input id="mobileGridColumns" type="number" min="1" max="10" step="1" value="${inferredGrid.columns}" /></label>
           <label class="field"><span>Ratio Canvas</span><select id="mobileCanvasRatio">
             <option value="custom" ${currentCanvasRatioKey() === "custom" ? "selected" : ""}>Custom</option>
             <option value="1:1" ${currentCanvasRatioKey() === "1:1" ? "selected" : ""}>1:1 Square</option>
@@ -1408,8 +1472,10 @@ function renderMobileToolPanel() {
             <option value="dotted" ${state.frameBorder.style === "dotted" ? "selected" : ""}>Dotted</option>
             <option value="double" ${state.frameBorder.style === "double" ? "selected" : ""}>Double</option>
           </select></label>
-          <label class="field"><span>Lebar Frame Aktif</span><input id="mobileSlotWidth" type="range" min="14" max="100" step="1" value="${Math.round((getCurrentSlot()?.width || 0.5) * 100)}" /></label>
-          <label class="field"><span>Tinggi Frame Aktif</span><input id="mobileSlotHeight" type="range" min="14" max="100" step="1" value="${Math.round((getCurrentSlot()?.height || 0.5) * 100)}" /></label>
+          <label class="field"><span>Lebar Frame Aktif (%)</span><input id="mobileSlotWidthNumber" type="number" min="5" max="100" step="1" value="${selectedSlotWidthPercent}" /></label>
+          <label class="field"><span>Slide Lebar Frame</span><input id="mobileSlotWidth" type="range" min="5" max="100" step="1" value="${selectedSlotWidthPercent}" /></label>
+          <label class="field"><span>Tinggi Frame Aktif (%)</span><input id="mobileSlotHeightNumber" type="number" min="5" max="100" step="1" value="${selectedSlotHeightPercent}" /></label>
+          <label class="field"><span>Slide Tinggi Frame</span><input id="mobileSlotHeight" type="range" min="5" max="100" step="1" value="${selectedSlotHeightPercent}" /></label>
           <label class="field"><span>Zoom Slot</span><input id="mobileSlotZoom" type="range" min="100" max="220" step="1" value="${Math.round(currentSlotEdit.zoom * 100)}" /></label>
           <label class="field"><span>Geser X</span><input id="mobileSlotOffsetX" type="range" min="-35" max="35" step="1" value="${Math.round(currentSlotEdit.offsetX * 100)}" /></label>
           <label class="field"><span>Geser Y</span><input id="mobileSlotOffsetY" type="range" min="-35" max="35" step="1" value="${Math.round(currentSlotEdit.offsetY * 100)}" /></label>
@@ -1417,7 +1483,8 @@ function renderMobileToolPanel() {
         <div class="mobile-tool-actions">
           <button class="mini-button" data-mobile-action="reset-slot">Reset Crop</button>
           <button class="mini-button" data-mobile-action="zoom-out-canvas">Zoom -</button>
-          <button class="mini-button mini-button--dark" data-mobile-action="zoom-reset-canvas">${Math.round(canvasViewportZoom * 100)}%</button>
+          <label class="mobile-zoom-field"><span>Zoom %</span><input id="mobileCanvasZoomInput" type="number" min="10" max="250" step="1" value="${Math.round(canvasViewportZoom * 100)}" /></label>
+          <button class="mini-button mini-button--dark" data-mobile-action="zoom-reset-canvas">100%</button>
           <button class="mini-button" data-mobile-action="zoom-in-canvas">Zoom +</button>
         </div>
       </div>`,
@@ -1737,6 +1804,20 @@ function renderMobileToolPanel() {
   const updateMobileState = (mutator, options = {}) => {
     setState(mutator, { trackHistory: false, renderMode: "surfaces", ...options });
   };
+  const syncMobileSlotSizeControls = () => {
+    const slot = getCurrentSlot();
+    if (!slot) return;
+    const width = String(Math.round(slot.width * 100));
+    const height = String(Math.round(slot.height * 100));
+    const widthNode = mobileControls.querySelector("#mobileSlotWidthNumber");
+    const widthSlider = mobileControls.querySelector("#mobileSlotWidth");
+    const heightNode = mobileControls.querySelector("#mobileSlotHeightNumber");
+    const heightSlider = mobileControls.querySelector("#mobileSlotHeight");
+    if (widthNode) widthNode.value = width;
+    if (widthSlider) widthSlider.value = width;
+    if (heightNode) heightNode.value = height;
+    if (heightSlider) heightSlider.value = height;
+  };
   const syncMobileCanvasControls = () => {
     const widthNode = mobileControls.querySelector("#mobileCanvasWidth");
     const widthSlider = mobileControls.querySelector("#mobileCanvasWidthSlider");
@@ -1749,6 +1830,20 @@ function renderMobileToolPanel() {
     if (heightSlider) heightSlider.value = String(state.canvasHeight);
     if (ratioNode) ratioNode.value = currentCanvasRatioKey();
   };
+
+  bindInput("#mobileTemplatePreset", "change", (event) => {
+    const preset = event.target.value;
+    const rows = clamp(Number(mobileControls.querySelector("#mobileGridRows")?.value) || 2, 1, 10);
+    const columns = clamp(Number(mobileControls.querySelector("#mobileGridColumns")?.value) || 2, 1, 10);
+    applyFrameTemplate(preset, rows, columns, { trackHistory: false });
+  });
+  const applyMobileCustomGrid = () => {
+    const rows = clamp(Number(mobileControls.querySelector("#mobileGridRows")?.value) || 1, 1, 10);
+    const columns = clamp(Number(mobileControls.querySelector("#mobileGridColumns")?.value) || 1, 1, 10);
+    applyFrameTemplate("custom-grid", rows, columns, { trackHistory: false });
+  };
+  bindInput("#mobileGridRows", "change", applyMobileCustomGrid);
+  bindInput("#mobileGridColumns", "change", applyMobileCustomGrid);
 
   bindInput("#mobileCanvasRatio", "change", (event) => {
     updateMobileState((draft) => {
@@ -1779,6 +1874,12 @@ function renderMobileToolPanel() {
       draft.canvasHeight = clamp(Number(event.target.value) || draft.canvasHeight, 320, 3000);
     });
     syncMobileCanvasControls();
+  });
+  bindInput("#mobileCanvasZoomInput", "input", (event) => {
+    applyCanvasViewportZoom(parseZoomPercent(event.target.value) / 100);
+  });
+  bindInput("#mobileCanvasZoomInput", "change", (event) => {
+    commitZoomInputValue(event.target.value);
   });
 
   bindInput("#mobileBgColor", "input", (event) => {
@@ -1818,13 +1919,27 @@ function renderMobileToolPanel() {
   });
   bindInput("#mobileSlotWidth", "input", (event) => {
     updateMobileState((draft) => {
-      resizeSlotByPercent(draft.selectedSlotIndex, "width", Number(event.target.value), draft);
+      resizeSlotByPercent(draft.selectedSlotIndex, "width", Number(event.target.value), draft, { reflowToFit: true });
     });
+    syncMobileSlotSizeControls();
   });
   bindInput("#mobileSlotHeight", "input", (event) => {
     updateMobileState((draft) => {
-      resizeSlotByPercent(draft.selectedSlotIndex, "height", Number(event.target.value), draft);
+      resizeSlotByPercent(draft.selectedSlotIndex, "height", Number(event.target.value), draft, { reflowToFit: true });
     });
+    syncMobileSlotSizeControls();
+  });
+  bindInput("#mobileSlotWidthNumber", "input", (event) => {
+    updateMobileState((draft) => {
+      resizeSlotByPercent(draft.selectedSlotIndex, "width", Number(event.target.value), draft, { reflowToFit: true });
+    });
+    syncMobileSlotSizeControls();
+  });
+  bindInput("#mobileSlotHeightNumber", "input", (event) => {
+    updateMobileState((draft) => {
+      resizeSlotByPercent(draft.selectedSlotIndex, "height", Number(event.target.value), draft, { reflowToFit: true });
+    });
+    syncMobileSlotSizeControls();
   });
   bindInput("#mobileSlotZoom", "input", (event) => {
     updateMobileState((draft) => {
@@ -2051,8 +2166,17 @@ function renderStageContents(stageElement, { interactive = false, allowResize = 
       : Math.max(280, window.innerWidth - 32);
   }
   const desktopScale = clamp(availableWidth / 1080, 0.38, 0.9);
-  const baseTargetWidth = isDesktopStage ? state.canvasWidth * desktopScale : availableWidth;
-  const baseTargetHeight = isDesktopStage ? state.canvasHeight * desktopScale : availableWidth * (state.canvasHeight / state.canvasWidth);
+  const mobileScale = Math.max(availableWidth / 1080, 0.46);
+  const baseTargetWidth = isDesktopStage
+    ? state.canvasWidth * desktopScale
+    : isMobileEditorStage
+      ? state.canvasWidth * mobileScale
+      : availableWidth;
+  const baseTargetHeight = isDesktopStage
+    ? state.canvasHeight * desktopScale
+    : isMobileEditorStage
+      ? state.canvasHeight * mobileScale
+      : availableWidth * (state.canvasHeight / state.canvasWidth);
   const targetWidth = isZoomableStage ? baseTargetWidth * canvasViewportZoom : baseTargetWidth;
   const targetHeight = isZoomableStage ? baseTargetHeight * canvasViewportZoom : baseTargetHeight;
   stageElement.style.width = `${targetWidth}px`;
@@ -2171,6 +2295,7 @@ function renderStageContents(stageElement, { interactive = false, allowResize = 
           kind: "slot-resize",
           pointerId: event.pointerId,
           slotIndex: index,
+          freeResize: stageElement === mobileEditorPreview,
           startX: event.clientX,
           startY: event.clientY,
           startWidth: slot.width,
@@ -2185,12 +2310,14 @@ function renderStageContents(stageElement, { interactive = false, allowResize = 
         const deltaY = (event.clientY - activeDrag.startY) / heightBase;
         setState((draft) => {
           const current = draft.templateSlots[index];
-          const bounds = getResizeBounds(draft.templateSlots, index);
-          const { xCandidates: snapCandidatesX, yCandidates: snapCandidatesY } = getResizeSnapCandidates(draft.templateSlots, index);
-          const nextWidth = clamp(activeDrag.startWidth + deltaX, 0.14, Math.min(1 - current.x, bounds.maxWidth));
-          const nextHeight = clamp(activeDrag.startHeight + deltaY, 0.14, Math.min(1 - current.y, bounds.maxHeight));
-          current.width = snapValue(nextWidth, snapCandidatesX);
-          current.height = snapValue(nextHeight, snapCandidatesY);
+          const bounds = activeDrag.freeResize ? { maxWidth: 1, maxHeight: 1 } : getResizeBounds(draft.templateSlots, index);
+          const { xCandidates: snapCandidatesX, yCandidates: snapCandidatesY } = activeDrag.freeResize
+            ? { xCandidates: [], yCandidates: [] }
+            : getResizeSnapCandidates(draft.templateSlots, index);
+          const nextWidth = clamp(activeDrag.startWidth + deltaX, 0.05, activeDrag.freeResize ? bounds.maxWidth : Math.min(1 - current.x, bounds.maxWidth));
+          const nextHeight = clamp(activeDrag.startHeight + deltaY, 0.05, activeDrag.freeResize ? bounds.maxHeight : Math.min(1 - current.y, bounds.maxHeight));
+          current.width = activeDrag.freeResize ? nextWidth : snapValue(nextWidth, snapCandidatesX);
+          current.height = activeDrag.freeResize ? nextHeight : snapValue(nextHeight, snapCandidatesY);
         }, { trackHistory: false, renderMode: "none" });
         const latest = state.templateSlots[index];
         if (latest) {
@@ -2884,18 +3011,32 @@ function getResizeSnapCandidates(slots, index) {
   };
 }
 
-function resizeSlotByPercent(slotIndex, dimension, percent, draft = state) {
+function resizeSlotByPercent(slotIndex, dimension, percent, draft = state, options = {}) {
   const current = draft.templateSlots[slotIndex];
   if (!current) return;
-  const bounds = getResizeBounds(draft.templateSlots, slotIndex);
-  const { xCandidates, yCandidates } = getResizeSnapCandidates(draft.templateSlots, slotIndex);
+  if (options.reflowToFit) {
+    const next = clamp(Number(percent) / 100, 0.05, 1);
+    if (dimension === "width") {
+      current.width = next;
+    }
+    if (dimension === "height") {
+      current.height = next;
+    }
+    return;
+  }
+  const avoidOverlap = options.avoidOverlap !== false;
+  const shouldSnap = options.snap !== false;
+  const bounds = avoidOverlap ? getResizeBounds(draft.templateSlots, slotIndex) : { maxWidth: 1 - current.x, maxHeight: 1 - current.y };
+  const { xCandidates, yCandidates } = shouldSnap
+    ? getResizeSnapCandidates(draft.templateSlots, slotIndex)
+    : { xCandidates: [], yCandidates: [] };
   if (dimension === "width") {
     const nextWidth = clamp(percent / 100, 0.14, Math.min(1 - current.x, bounds.maxWidth));
-    current.width = snapValue(nextWidth, xCandidates);
+    current.width = shouldSnap ? snapValue(nextWidth, xCandidates) : nextWidth;
   }
   if (dimension === "height") {
     const nextHeight = clamp(percent / 100, 0.14, Math.min(1 - current.y, bounds.maxHeight));
-    current.height = snapValue(nextHeight, yCandidates);
+    current.height = shouldSnap ? snapValue(nextHeight, yCandidates) : nextHeight;
   }
 }
 
@@ -3558,12 +3699,14 @@ function handleGlobalTransformDrag(event) {
     setState((draft) => {
       const current = draft.templateSlots[slotIndex];
       if (!current) return;
-      const bounds = getResizeBounds(draft.templateSlots, slotIndex);
-      const { xCandidates, yCandidates } = getResizeSnapCandidates(draft.templateSlots, slotIndex);
-      const nextWidth = clamp(activeDrag.startWidth + deltaX, 0.14, Math.min(1 - current.x, bounds.maxWidth));
-      const nextHeight = clamp(activeDrag.startHeight + deltaY, 0.14, Math.min(1 - current.y, bounds.maxHeight));
-      current.width = snapValue(nextWidth, xCandidates);
-      current.height = snapValue(nextHeight, yCandidates);
+      const bounds = activeDrag.freeResize ? { maxWidth: 1, maxHeight: 1 } : getResizeBounds(draft.templateSlots, slotIndex);
+      const { xCandidates, yCandidates } = activeDrag.freeResize
+        ? { xCandidates: [], yCandidates: [] }
+        : getResizeSnapCandidates(draft.templateSlots, slotIndex);
+      const nextWidth = clamp(activeDrag.startWidth + deltaX, 0.05, activeDrag.freeResize ? bounds.maxWidth : Math.min(1 - current.x, bounds.maxWidth));
+      const nextHeight = clamp(activeDrag.startHeight + deltaY, 0.05, activeDrag.freeResize ? bounds.maxHeight : Math.min(1 - current.y, bounds.maxHeight));
+      current.width = activeDrag.freeResize ? nextWidth : snapValue(nextWidth, xCandidates);
+      current.height = activeDrag.freeResize ? nextHeight : snapValue(nextHeight, yCandidates);
     }, { trackHistory: false, renderMode: "none" });
     const latest = state.templateSlots[slotIndex];
     if (latest && activeDrag.slotNode) {
@@ -3809,6 +3952,7 @@ function startStagePointerInteraction(stageElement, event) {
       stageElement,
       slotNode,
       slotIndex,
+      freeResize: stageElement === mobileEditorPreview,
       startX: event.clientX,
       startY: event.clientY,
       startWidth: slot.width,
@@ -4211,8 +4355,20 @@ function setupEventListeners() {
   canvasZoomInButton?.addEventListener("click", () => {
     applyCanvasViewportZoom(canvasViewportZoom + 0.1);
   });
-  canvasZoomResetButton?.addEventListener("click", () => {
-    applyCanvasViewportZoom(1);
+  canvasZoomResetButton?.addEventListener("change", (event) => {
+    commitZoomInputValue(event.target.value);
+  });
+  canvasZoomResetButton?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitZoomInputValue(event.target.value);
+      event.currentTarget.blur();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.currentTarget.value = `${Math.round(canvasViewportZoom * 100)}%`;
+      event.currentTarget.blur();
+    }
   });
   mobileEditorBackButton?.addEventListener("click", () => {
     mobileView = "home";
@@ -4281,6 +4437,19 @@ function setupEventListeners() {
   frameBorderStyleInput.addEventListener("change", (event) => {
     setState((draft) => { draft.frameBorder.style = event.target.value; }, { trackHistory: false });
   });
+  desktopTemplatePresetInput?.addEventListener("change", (event) => {
+    const preset = event.target.value;
+    const rows = clamp(Number(desktopGridRowsInput?.value) || 2, 1, 10);
+    const columns = clamp(Number(desktopGridColumnsInput?.value) || 2, 1, 10);
+    applyFrameTemplate(preset, rows, columns, { trackHistory: false });
+  });
+  const applyDesktopCustomGrid = () => {
+    const rows = clamp(Number(desktopGridRowsInput?.value) || 1, 1, 10);
+    const columns = clamp(Number(desktopGridColumnsInput?.value) || 1, 1, 10);
+    applyFrameTemplate("custom-grid", rows, columns, { trackHistory: false });
+  };
+  desktopGridRowsInput?.addEventListener("change", applyDesktopCustomGrid);
+  desktopGridColumnsInput?.addEventListener("change", applyDesktopCustomGrid);
   canvasWidthInput.addEventListener("input", (event) => {
     setState((draft) => { draft.canvasWidth = Number(event.target.value); }, { trackHistory: false });
   });
