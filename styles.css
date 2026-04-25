@@ -863,17 +863,38 @@ button {
   padding-top: calc(18px + env(safe-area-inset-top));
 }
 
+.mobile-panel--editor {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.mobile-panel--editor .mobile-editor-topbar,
+.mobile-panel--editor .mobile-tabs {
+  flex: 0 0 auto;
+}
+
 .mobile-panel--editor .editor-stage-wrap {
+  flex: 0 0 auto;
   justify-content: flex-start;
   align-items: flex-start;
-  min-height: 48vh;
-  max-height: 58vh;
+  min-height: 38vh;
+  max-height: 45vh;
   -webkit-overflow-scrolling: touch;
 }
 
 .mobile-panel--editor .editor-stage {
   flex: 0 0 auto;
   margin: auto;
+}
+
+.mobile-panel--editor .mobile-controls {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 18px 18px;
+  -webkit-overflow-scrolling: touch;
 }
 
 .mobile-topbar,

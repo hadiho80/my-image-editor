@@ -1393,7 +1393,9 @@ function renderMobileToolPanel() {
             <option value="16:9" ${currentCanvasRatioKey() === "16:9" ? "selected" : ""}>16:9 Landscape</option>
           </select></label>
           <label class="field"><span>Lebar Canvas</span><input id="mobileCanvasWidth" type="number" min="320" max="3000" step="10" value="${state.canvasWidth}" /></label>
+          <label class="field"><span>Slide Lebar</span><input id="mobileCanvasWidthSlider" type="range" min="320" max="3000" step="10" value="${state.canvasWidth}" /></label>
           <label class="field"><span>Tinggi Canvas</span><input id="mobileCanvasHeight" type="number" min="320" max="3000" step="10" value="${state.canvasHeight}" /></label>
+          <label class="field"><span>Slide Tinggi</span><input id="mobileCanvasHeightSlider" type="range" min="320" max="3000" step="10" value="${state.canvasHeight}" /></label>
           <label class="field"><span>Background</span><input id="mobileBgColor" type="color" value="${state.backgroundColor}" /></label>
           <label class="field"><span>Gap</span><input id="mobileGapInput" type="range" min="0" max="32" step="1" value="${state.gap}" /></label>
           <label class="field"><span>Radius</span><input id="mobileRadiusInput" type="range" min="0" max="40" step="1" value="${state.radius}" /></label>
@@ -1735,29 +1737,48 @@ function renderMobileToolPanel() {
   const updateMobileState = (mutator, options = {}) => {
     setState(mutator, { trackHistory: false, renderMode: "surfaces", ...options });
   };
+  const syncMobileCanvasControls = () => {
+    const widthNode = mobileControls.querySelector("#mobileCanvasWidth");
+    const widthSlider = mobileControls.querySelector("#mobileCanvasWidthSlider");
+    const heightNode = mobileControls.querySelector("#mobileCanvasHeight");
+    const heightSlider = mobileControls.querySelector("#mobileCanvasHeightSlider");
+    const ratioNode = mobileControls.querySelector("#mobileCanvasRatio");
+    if (widthNode) widthNode.value = String(state.canvasWidth);
+    if (widthSlider) widthSlider.value = String(state.canvasWidth);
+    if (heightNode) heightNode.value = String(state.canvasHeight);
+    if (heightSlider) heightSlider.value = String(state.canvasHeight);
+    if (ratioNode) ratioNode.value = currentCanvasRatioKey();
+  };
 
   bindInput("#mobileCanvasRatio", "change", (event) => {
     updateMobileState((draft) => {
       applyCanvasRatio(event.target.value, draft);
     });
-    const widthNode = mobileControls.querySelector("#mobileCanvasWidth");
-    const heightNode = mobileControls.querySelector("#mobileCanvasHeight");
-    if (widthNode) widthNode.value = String(state.canvasWidth);
-    if (heightNode) heightNode.value = String(state.canvasHeight);
+    syncMobileCanvasControls();
   });
   bindInput("#mobileCanvasWidth", "input", (event) => {
     updateMobileState((draft) => {
       draft.canvasWidth = clamp(Number(event.target.value) || draft.canvasWidth, 320, 3000);
     });
-    const ratioNode = mobileControls.querySelector("#mobileCanvasRatio");
-    if (ratioNode) ratioNode.value = currentCanvasRatioKey();
+    syncMobileCanvasControls();
+  });
+  bindInput("#mobileCanvasWidthSlider", "input", (event) => {
+    updateMobileState((draft) => {
+      draft.canvasWidth = clamp(Number(event.target.value) || draft.canvasWidth, 320, 3000);
+    });
+    syncMobileCanvasControls();
   });
   bindInput("#mobileCanvasHeight", "input", (event) => {
     updateMobileState((draft) => {
       draft.canvasHeight = clamp(Number(event.target.value) || draft.canvasHeight, 320, 3000);
     });
-    const ratioNode = mobileControls.querySelector("#mobileCanvasRatio");
-    if (ratioNode) ratioNode.value = currentCanvasRatioKey();
+    syncMobileCanvasControls();
+  });
+  bindInput("#mobileCanvasHeightSlider", "input", (event) => {
+    updateMobileState((draft) => {
+      draft.canvasHeight = clamp(Number(event.target.value) || draft.canvasHeight, 320, 3000);
+    });
+    syncMobileCanvasControls();
   });
 
   bindInput("#mobileBgColor", "input", (event) => {
@@ -3120,17 +3141,15 @@ function editTextLayerInline(textId, targetNode = null) {
 }
 
 function openMobileTextEditor(textId) {
-  setState((draft) => {
-    draft.selectedTextId = textId;
-    draft.activeSelectionType = "text";
-  }, { trackHistory: false, renderMode: "none" });
-  mobileTool = "text";
-  renderMobileShell();
+  const textNode = mobileEditorPreview?.querySelector(`.text-layer[data-text-id="${textId}"]`);
+  if (textNode) {
+    editTextLayerInline(textId, textNode);
+    return;
+  }
+  renderEditorSurfacesOnly();
   window.requestAnimationFrame(() => {
-    const input = mobileControls?.querySelector("#mobileTextInput");
-    if (!input) return;
-    input.focus({ preventScroll: true });
-    input.select?.();
+    const fallbackNode = mobileEditorPreview?.querySelector(`.text-layer[data-text-id="${textId}"]`);
+    if (fallbackNode) editTextLayerInline(textId, fallbackNode);
   });
 }
 
@@ -4012,6 +4031,10 @@ function isMobileControlEditing() {
   return Boolean(active?.closest?.("#mobileControls") && active.matches?.("input, textarea, select"));
 }
 
+function isMobileInlineTextEditing() {
+  return Boolean(document.activeElement?.closest?.("#mobileEditorPreview .text-layer.is-editing"));
+}
+
 function setupEventListeners() {
   window.addEventListener("pointermove", (event) => {
     if (activeRightbarResize) {
@@ -4548,9 +4571,12 @@ function setupEventListeners() {
     installAppButton.classList.add("hidden");
   });
   window.addEventListener("resize", () => {
-    if (matchMedia("(max-width: 760px)").matches && isMobileControlEditing()) {
-      window.requestAnimationFrame(renderEditorSurfacesOnly);
-      return;
+    if (matchMedia("(max-width: 760px)").matches) {
+      if (isMobileInlineTextEditing()) return;
+      if (isMobileControlEditing()) {
+        window.requestAnimationFrame(renderEditorSurfacesOnly);
+        return;
+      }
     }
     renderAll();
   });
