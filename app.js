@@ -2137,7 +2137,7 @@ async function handleShareTarget(target) {
     return;
   }
   if (target === "save") {
-    await saveCompositeAsDeviceImage({ preferShare: true });
+    await saveCompositeAsDeviceImage({ preferShare: false });
     return;
   }
   if (target === "system") {
@@ -4394,10 +4394,10 @@ function setupEventListeners() {
   });
   mobileEditorSaveButton?.addEventListener("click", async () => {
     try {
-      await saveCompositeAsDeviceImage({ preferShare: true });
+      await saveCompositeAsDeviceImage({ preferShare: false });
     } catch (error) {
       console.error(error);
-      window.alert("Simpan ke galeri gagal. Coba pilih Share atau ulangi.");
+      window.alert("Simpan gambar gagal. Coba ulangi atau gunakan Share.");
     }
   });
   mobileEditorShareButton?.addEventListener("click", async () => {
@@ -4730,8 +4730,8 @@ function setupEventListeners() {
   saveImageButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: matchMedia("(max-width: 760px)").matches }));
   exportPngButton.addEventListener("click", downloadCompositePng);
   shareButton.addEventListener("click", shareCompositePng);
-  mobileSaveGalleryButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: true }));
-  mobileSavePlatformButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: true }));
+  mobileSaveGalleryButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: false }));
+  mobileSavePlatformButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: false }));
 
   undoButton?.addEventListener("click", () => {
     if (history.length <= 1) return;
