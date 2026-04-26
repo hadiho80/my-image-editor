@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
-        fun shareImage(dataUrl: String, filename: String, mimeType: String) {
+        fun shareImage(dataUrl: String, filename: String, mimeType: String, caption: String) {
             runOnUiThread {
                 try {
                     val bytes = decodeDataUrl(dataUrl)
@@ -126,6 +126,9 @@ class MainActivity : AppCompatActivity() {
                     val intent = Intent(Intent.ACTION_SEND).apply {
                         type = mimeType
                         putExtra(Intent.EXTRA_STREAM, uri)
+                        if (caption.isNotBlank()) {
+                            putExtra(Intent.EXTRA_TEXT, caption)
+                        }
                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }
                     startActivity(Intent.createChooser(intent, "Bagikan gambar"))

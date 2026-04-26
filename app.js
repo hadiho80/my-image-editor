@@ -3,6 +3,8 @@ const LEGACY_STORAGE_KEY = "funpic-project";
 const RIGHTBAR_WIDTH_STORAGE_KEY = "funpic-rightbar-width";
 const RIGHTBAR_COLLAPSED_STORAGE_KEY = "funpic-rightbar-collapsed";
 const CANVAS_ZOOM_STORAGE_KEY = "funpic-canvas-zoom";
+const SHARE_TEXT_STORAGE_KEY = "funpic-share-text";
+const SHARE_TEXT_ENABLED_STORAGE_KEY = "funpic-share-text-enabled";
 const DB_NAME = "funpic-db";
 const DB_VERSION = 1;
 const PROJECT_STORE = "projects";
@@ -217,6 +219,8 @@ let rightbarWidth = clamp(Number(localStorage.getItem(RIGHTBAR_WIDTH_STORAGE_KEY
 let rightbarCollapsed = localStorage.getItem(RIGHTBAR_COLLAPSED_STORAGE_KEY) === "1";
 let activeRightbarResize = null;
 let canvasViewportZoom = clamp(Number(localStorage.getItem(CANVAS_ZOOM_STORAGE_KEY)) || 1, 0.1, 2.5);
+let shareText = localStorage.getItem(SHARE_TEXT_STORAGE_KEY) || "";
+let shareTextEnabled = localStorage.getItem(SHARE_TEXT_ENABLED_STORAGE_KEY) === "1";
 
 function initViewFromQuery() {
   const params = new URLSearchParams(window.location.search);
@@ -349,6 +353,10 @@ const mobileNavButtons = Array.from(document.querySelectorAll("[data-mobile-view
 const mobileEditorBackButton = document.querySelector(".phone-stage--editor .back-btn");
 const mobileShareBackButton = document.querySelector(".phone-stage--share .back-btn");
 const mobileEditorUndoButton = document.querySelector(".phone-stage--editor .compact-btn--ghost");
+const mobileEditorRedoButton = document.querySelector("#mobileEditorRedoButton");
+const mobileEditorZoomOutButton = document.querySelector("#mobileEditorZoomOutButton");
+const mobileEditorZoomInput = document.querySelector("#mobileEditorZoomInput");
+const mobileEditorZoomInButton = document.querySelector("#mobileEditorZoomInButton");
 const mobileEditorSaveButton = document.querySelector("#mobileEditorSaveButton");
 const mobileEditorShareButton = document.querySelector("#mobileEditorShareButton");
 const mobileControls = document.querySelector("#mobileControls");
@@ -362,6 +370,10 @@ const exportPresetButtons = Array.from(document.querySelectorAll("[data-export-p
 const shareTargetButtons = Array.from(document.querySelectorAll("[data-share-target]"));
 const desktopToolButtons = Array.from(document.querySelectorAll("[data-desktop-tool]"));
 const desktopTabButtons = Array.from(document.querySelectorAll("[data-panel-tab]"));
+const mobileShareCaptionEnabledInput = document.querySelector("#mobileShareCaptionEnabledInput");
+const mobileShareCaptionInput = document.querySelector("#mobileShareCaptionInput");
+const desktopShareCaptionEnabledInput = document.querySelector("#desktopShareCaptionEnabledInput");
+const desktopShareCaptionInput = document.querySelector("#desktopShareCaptionInput");
 const desktopBody = document.querySelector(".desktop-body");
 const desktopCanvasZone = document.querySelector(".desktop-canvas-zone");
 const desktopRightPanel = document.querySelector(".desktop-right-panel");
@@ -430,10 +442,13 @@ function applyCanvasViewportZoom(nextZoom, { render = true } = {}) {
   localStorage.setItem(CANVAS_ZOOM_STORAGE_KEY, String(canvasViewportZoom));
   const label = `${Math.round(canvasViewportZoom * 100)}%`;
   if (canvasZoomResetButton) canvasZoomResetButton.value = label;
+  if (mobileEditorZoomInput) mobileEditorZoomInput.value = label;
   const mobileZoomInput = mobileControls?.querySelector("#mobileCanvasZoomInput");
   if (mobileZoomInput) mobileZoomInput.value = String(Math.round(canvasViewportZoom * 100));
   if (canvasZoomOutButton) canvasZoomOutButton.disabled = canvasViewportZoom <= 0.101;
   if (canvasZoomInButton) canvasZoomInButton.disabled = canvasViewportZoom >= 2.49;
+  if (mobileEditorZoomOutButton) mobileEditorZoomOutButton.disabled = canvasViewportZoom <= 0.101;
+  if (mobileEditorZoomInButton) mobileEditorZoomInButton.disabled = canvasViewportZoom >= 2.49;
   if (render) requestAnimationFrame(renderEditorSurfaceOnly);
 }
 
@@ -446,6 +461,35 @@ function parseZoomPercent(value) {
 function commitZoomInputValue(value) {
   const percent = parseZoomPercent(value);
   applyCanvasViewportZoom(percent / 100);
+}
+
+function getShareCaption() {
+  return shareTextEnabled ? shareText.trim() : "";
+}
+
+function syncShareCaptionInputs() {
+  [mobileShareCaptionEnabledInput, desktopShareCaptionEnabledInput].forEach((input) => {
+    if (input) input.checked = shareTextEnabled;
+  });
+  [mobileShareCaptionInput, desktopShareCaptionInput].forEach((input) => {
+    if (!input) return;
+    input.value = shareText;
+    input.disabled = !shareTextEnabled;
+  });
+}
+
+function setShareTextEnabled(enabled) {
+  shareTextEnabled = Boolean(enabled);
+  localStorage.setItem(SHARE_TEXT_ENABLED_STORAGE_KEY, shareTextEnabled ? "1" : "0");
+  syncShareCaptionInputs();
+}
+
+function setShareText(value) {
+  shareText = String(value ?? "");
+  localStorage.setItem(SHARE_TEXT_STORAGE_KEY, shareText);
+  [mobileShareCaptionInput, desktopShareCaptionInput].forEach((input) => {
+    if (input && input.value !== shareText) input.value = shareText;
+  });
 }
 
 function normalizeSnapshot(snapshot) {
@@ -625,6 +669,8 @@ function syncDeleteLabels() {
 function updateHistoryButtons() {
   if (undoButton) undoButton.disabled = history.length <= 1;
   if (redoButton) redoButton.disabled = future.length === 0;
+  if (mobileEditorUndoButton) mobileEditorUndoButton.disabled = history.length <= 1;
+  if (mobileEditorRedoButton) mobileEditorRedoButton.disabled = future.length === 0;
 }
 
 function openProjectsDb() {
@@ -797,6 +843,7 @@ function syncInputs() {
   saveButton.textContent = state.projectName ? `Update Project: ${state.projectName}` : "Save Project";
   if (desktopProjectName) desktopProjectName.textContent = state.projectName ? `${state.projectName}.myimage` : "Kolase Liburan.myimage";
   if (mobileEditorTitle) mobileEditorTitle.textContent = state.projectName || "Kolase Liburan";
+  syncShareCaptionInputs();
 }
 
 function createTemplateCard(template) {
@@ -1483,10 +1530,6 @@ function renderMobileToolPanel() {
         </div>
         <div class="mobile-tool-actions">
           <button class="mini-button" data-mobile-action="reset-slot">Reset Crop</button>
-          <button class="mini-button" data-mobile-action="zoom-out-canvas">Zoom -</button>
-          <label class="mobile-zoom-field"><span>Zoom %</span><input id="mobileCanvasZoomInput" type="number" min="10" max="250" step="1" value="${Math.round(canvasViewportZoom * 100)}" /></label>
-          <button class="mini-button mini-button--dark" data-mobile-action="zoom-reset-canvas">100%</button>
-          <button class="mini-button" data-mobile-action="zoom-in-canvas">Zoom +</button>
         </div>
       </div>`,
     sticker: `
@@ -2447,6 +2490,9 @@ function renderStage() {
 }
 
 function renderMobileShell() {
+  if (mobileShells) {
+    mobileShells.classList.toggle("is-editor-view", mobileView === "editor");
+  }
   mobileStages.forEach((stage) => {
     const stageView = stage.classList.contains("phone-stage--editor")
       ? "editor"
@@ -2895,18 +2941,20 @@ async function shareCompositePng() {
   const options = getImageExportOptions("png");
   const blob = await exportCompositeBlob(options.mimeType, options.quality, getExportSize());
   const file = new File([blob], getOutputFilename(options.format), { type: options.mimeType });
+  const caption = getShareCaption();
   if (window.AndroidImageEditor?.shareImage) {
     const dataUrl = await blobToDataUrl(blob);
-    window.AndroidImageEditor.shareImage(dataUrl, file.name, options.mimeType);
+    window.AndroidImageEditor.shareImage(dataUrl, file.name, options.mimeType, caption);
     return;
   }
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({
+      const sharePayload = {
         files: [file],
         title: state.projectName || "FunPic",
-        text: "Hasil edit dari FunPic",
-      });
+      };
+      if (caption) sharePayload.text = caption;
+      await navigator.share(sharePayload);
     } catch (error) {
       if (error?.name !== "AbortError") throw error;
     }
@@ -4381,6 +4429,27 @@ function setupEventListeners() {
       event.currentTarget.blur();
     }
   });
+  mobileEditorZoomOutButton?.addEventListener("click", () => {
+    applyCanvasViewportZoom(canvasViewportZoom - 0.1);
+  });
+  mobileEditorZoomInButton?.addEventListener("click", () => {
+    applyCanvasViewportZoom(canvasViewportZoom + 0.1);
+  });
+  mobileEditorZoomInput?.addEventListener("change", (event) => {
+    commitZoomInputValue(event.target.value);
+  });
+  mobileEditorZoomInput?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      commitZoomInputValue(event.target.value);
+      event.currentTarget.blur();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.currentTarget.value = `${Math.round(canvasViewportZoom * 100)}%`;
+      event.currentTarget.blur();
+    }
+  });
   mobileEditorBackButton?.addEventListener("click", () => {
     mobileView = "home";
     renderAll();
@@ -4391,6 +4460,9 @@ function setupEventListeners() {
   });
   mobileEditorUndoButton?.addEventListener("click", () => {
     undoButton.click();
+  });
+  mobileEditorRedoButton?.addEventListener("click", () => {
+    redoButton.click();
   });
   mobileEditorSaveButton?.addEventListener("click", async () => {
     try {
@@ -4732,6 +4804,12 @@ function setupEventListeners() {
   shareButton.addEventListener("click", shareCompositePng);
   mobileSaveGalleryButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: false }));
   mobileSavePlatformButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: false }));
+  [mobileShareCaptionEnabledInput, desktopShareCaptionEnabledInput].forEach((input) => {
+    input?.addEventListener("change", (event) => setShareTextEnabled(event.target.checked));
+  });
+  [mobileShareCaptionInput, desktopShareCaptionInput].forEach((input) => {
+    input?.addEventListener("input", (event) => setShareText(event.target.value));
+  });
 
   undoButton?.addEventListener("click", () => {
     if (history.length <= 1) return;

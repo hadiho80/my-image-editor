@@ -16,8 +16,8 @@
     <link rel="icon" type="image/svg+xml" href="/assets/icon-7X88pjyY.svg" />
     <link rel="apple-touch-icon" href="/assets/icon-192-DxdDlCEF.svg" />
     <title>FunPic</title>
-    <script type="module" crossorigin src="/assets/index-DTpWWDqQ.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-BVXsh4JP.css">
+    <script type="module" crossorigin src="/assets/index-ByhZ0gwR.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-9buy5HzB.css">
   </head>
   <body>
     <div class="app-shell">
@@ -91,6 +91,12 @@
             <button class="back-btn" type="button">&#8249;</button>
             <div class="mobile-editor-title">Kolase Liburan</div>
             <button class="compact-btn compact-btn--ghost" type="button" title="Undo" aria-label="Undo">&#8630;</button>
+            <button id="mobileEditorRedoButton" class="compact-btn compact-btn--ghost" type="button" title="Redo" aria-label="Redo">&#8631;</button>
+            <div class="mobile-topbar-zoom" aria-label="Zoom canvas">
+              <button id="mobileEditorZoomOutButton" class="compact-btn compact-btn--ghost" type="button" aria-label="Zoom out">-</button>
+              <input id="mobileEditorZoomInput" class="compact-btn compact-btn--dark mobile-topbar-zoom__input" type="text" value="100%" inputmode="numeric" aria-label="Zoom canvas percent" />
+              <button id="mobileEditorZoomInButton" class="compact-btn compact-btn--ghost" type="button" aria-label="Zoom in">+</button>
+            </div>
             <button id="mobileEditorSaveButton" class="compact-btn compact-btn--dark" type="button">Save</button>
             <button id="mobileEditorShareButton" class="compact-btn compact-btn--accent" type="button">Share</button>
           </div>
@@ -138,6 +144,14 @@
               <button class="q-opt sel" data-export-preset="hd" type="button">HD<span class="q-size">4000 x 4000</span></button>
               <button class="q-opt" data-export-preset="standard" type="button">Standard<span class="q-size">2000 x 2000</span></button>
               <button class="q-opt" data-export-preset="web" type="button">Web<span class="q-size">1080 x 1080</span></button>
+            </div>
+
+            <div class="share-caption-card">
+              <label class="toggle share-caption-toggle">
+                <input id="mobileShareCaptionEnabledInput" type="checkbox" />
+                <span>Pakai caption saat share</span>
+              </label>
+              <textarea id="mobileShareCaptionInput" rows="3" placeholder="Tulis caption opsional. Kosongkan kalau tidak mau text."></textarea>
             </div>
 
             <div class="share-platforms">
@@ -539,6 +553,17 @@
 
               <div id="section-project" class="section-block">
                 <h3>Project</h3>
+                <div class="section-block section-block--nested">
+                  <h3>Share Caption</h3>
+                  <label class="toggle">
+                    <input id="desktopShareCaptionEnabledInput" type="checkbox" />
+                    <span>Pakai caption saat share</span>
+                  </label>
+                  <label class="field">
+                    <span>Caption share</span>
+                    <textarea id="desktopShareCaptionInput" rows="3" placeholder="Kosongkan kalau share tanpa text."></textarea>
+                  </label>
+                </div>
                 <div class="section-headline">
                   <h3>Project Tersimpan</h3>
                   <button id="refreshProjectsButton" class="mini-button" type="button">Refresh</button>
