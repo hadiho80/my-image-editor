@@ -16,8 +16,8 @@
     <link rel="icon" type="image/svg+xml" href="/assets/icon-7X88pjyY.svg" />
     <link rel="apple-touch-icon" href="/assets/icon-192-DxdDlCEF.svg" />
     <title>FunPic</title>
-    <script type="module" crossorigin src="/assets/index-ByhZ0gwR.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-9buy5HzB.css">
+    <script type="module" crossorigin src="/assets/index-R8EKK7AE.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D_PCpo8R.css">
   </head>
   <body>
     <div class="app-shell">
@@ -32,19 +32,29 @@
           </div>
 
           <section class="panel panel--library mobile-panel mobile-panel--home">
-            <div class="panel__header">
-              <h2>Media & Template</h2>
-              <p>Upload foto lalu pilih layout kolase.</p>
-            </div>
-
-            <label id="mobileUploadCard" class="upload-card">
-              <strong>Upload Foto</strong>
-              <span>Maksimal 4 foto. Bisa dari galeri, kamera, atau file lokal.</span>
-            </label>
-
-            <div class="quick-actions">
-              <button id="mobileCameraButton" class="ghost-button" type="button">Ambil Foto</button>
-              <button id="mobileClearProjectButton" class="ghost-button" type="button">Reset Project</button>
+            <div class="mobile-home-hero">
+              <svg class="mobile-home-hero__art" viewBox="0 0 180 132" aria-hidden="true">
+                <defs>
+                  <linearGradient id="heroPhotoGradient" x1="0" x2="1" y1="0" y2="1">
+                    <stop stop-color="#FF5757" />
+                    <stop offset="1" stop-color="#FFD166" />
+                  </linearGradient>
+                </defs>
+                <rect x="26" y="26" width="120" height="82" rx="22" fill="#1E1E35" stroke="rgba(255,255,255,.16)" />
+                <rect x="42" y="42" width="88" height="50" rx="14" fill="url(#heroPhotoGradient)" opacity=".92" />
+                <circle cx="118" cy="38" r="18" fill="#06D6A0" opacity=".9" />
+                <path d="M48 91l24-27 19 20 13-13 28 28H48z" fill="#F0F0FF" opacity=".86" />
+                <circle cx="54" cy="30" r="7" fill="#FFD166" />
+                <circle cx="145" cy="95" r="10" fill="#FF5757" />
+              </svg>
+              <h2>Buat kolase foto<br />impianmu &#10022;</h2>
+              <p>Upload, edit, lalu share ke sosmed.</p>
+              <button id="mobileUploadCard" class="btn-primary mobile-hero-cta" type="button">&#128248; Mulai Upload</button>
+              <button id="mobileOpenProjectsButton" class="btn-secondary mobile-hero-secondary" type="button">&#128193; Buka Project</button>
+              <div class="mobile-hero-actions">
+                <button id="mobileCameraButton" class="ghost-button" type="button">&#128247; Kamera</button>
+                <button id="mobileClearProjectButton" class="ghost-button" type="button">&#128260; Ulang</button>
+              </div>
             </div>
 
             <div class="section-block">
@@ -80,9 +90,8 @@
 
           <nav class="mobile-bottom-nav">
             <button class="nav-item active" data-mobile-view="home" type="button"><span class="ni">&#8962;</span>Beranda</button>
-            <button class="nav-item" data-mobile-view="editor" type="button"><span class="ni">&#9998;</span>Editor</button>
+            <button class="nav-item nav-item--center" data-mobile-view="editor" type="button"><span class="ni">&#9998;</span><span>Editor</span></button>
             <button class="nav-item" data-mobile-view="share" type="button"><span class="ni">&#128228;</span>Share</button>
-            <button class="nav-item" data-mobile-view="home" type="button"><span class="ni">&#128100;</span>Profil</button>
           </nav>
         </div>
 
@@ -141,9 +150,9 @@
             <div id="mobileSharePreview" class="share-preview-box"></div>
 
             <div class="quality-row">
-              <button class="q-opt sel" data-export-preset="hd" type="button">HD<span class="q-size">4000 x 4000</span></button>
-              <button class="q-opt" data-export-preset="standard" type="button">Standard<span class="q-size">2000 x 2000</span></button>
-              <button class="q-opt" data-export-preset="web" type="button">Web<span class="q-size">1080 x 1080</span></button>
+              <button class="q-opt sel" data-export-preset="hd" type="button" title="4000 x 4000">HD · 4K</button>
+              <button class="q-opt" data-export-preset="standard" type="button" title="2000 x 2000">Standard</button>
+              <button class="q-opt" data-export-preset="web" type="button" title="1080 x 1080">Web</button>
             </div>
 
             <div class="share-caption-card">
@@ -155,14 +164,14 @@
             </div>
 
             <div class="share-platforms">
-              <button class="sp" data-share-target="whatsapp" type="button"><span class="sp-icon sp-wa">WA</span><span>WhatsApp</span></button>
-              <button class="sp" data-share-target="instagram" type="button"><span class="sp-icon sp-ig">IG</span><span>Instagram</span></button>
+              <button class="sp" data-share-target="whatsapp" type="button"><span class="sp-icon sp-wa">&#128172;</span><span>WhatsApp</span></button>
+              <button class="sp" data-share-target="instagram" type="button"><span class="sp-icon sp-ig">&#128247;</span><span>Instagram</span></button>
               <button class="sp" data-share-target="facebook" type="button"><span class="sp-icon sp-fb">f</span><span>Facebook</span></button>
-              <button class="sp" data-share-target="telegram" type="button"><span class="sp-icon sp-tg">TG</span><span>Telegram</span></button>
+              <button class="sp" data-share-target="telegram" type="button"><span class="sp-icon sp-tg">&#9992;</span><span>Telegram</span></button>
               <button class="sp" data-share-target="twitter" type="button"><span class="sp-icon sp-tw">X</span><span>Twitter/X</span></button>
               <button class="sp" data-share-target="linkedin" type="button"><span class="sp-icon sp-li">in</span><span>LinkedIn</span></button>
-              <button class="sp" data-share-target="copy" type="button"><span class="sp-icon sp-cp">CP</span><span>Copy</span></button>
-              <button id="mobileSavePlatformButton" class="sp" data-share-target="save" type="button"><span class="sp-icon sp-dl">SV</span><span>Simpan</span></button>
+              <button class="sp" data-share-target="copy" type="button"><span class="sp-icon sp-cp">&#128279;</span><span>Copy</span></button>
+              <button id="mobileSavePlatformButton" class="sp" data-share-target="save" type="button"><span class="sp-icon sp-dl">&#128190;</span><span>Simpan</span></button>
             </div>
 
             <button id="mobileSaveGalleryButton" class="save-btn" type="button">&#128190; Simpan ke Galeri</button>
@@ -200,17 +209,12 @@
           <div class="desktop-body">
             <aside class="desktop-left-rail">
               <button class="rail-btn active" data-desktop-tool="pointer" type="button" title="Pointer / select">Pointer</button>
-              <button class="rail-btn" data-desktop-tool="media" type="button" title="Media dan template">Foto</button>
               <button class="rail-btn" data-desktop-tool="frame" type="button" title="Frame dan crop">Frame</button>
               <button class="rail-btn" data-desktop-tool="sticker" type="button" title="Stiker">Stiker</button>
               <button class="rail-btn" data-desktop-tool="text" type="button" title="Teks">Teks</button>
-              <div class="rail-sep"></div>
-              <button class="rail-btn" data-desktop-tool="filter" type="button" title="Filter">FX</button>
-              <button class="rail-btn" data-desktop-tool="draw" type="button" title="Draw">PEN</button>
-              <button class="rail-btn" data-desktop-tool="project" type="button" title="Project">File</button>
-              <div class="rail-sep"></div>
+              <button class="rail-btn" data-desktop-tool="filter" type="button" title="Filter">Filter</button>
+              <button class="rail-btn" data-desktop-tool="draw" type="button" title="Draw">Draw</button>
               <button class="rail-btn" data-desktop-tool="layer" type="button" title="Layer">Layer</button>
-              <button class="rail-btn" data-desktop-tool="saved" type="button" title="Project tersimpan">Saved</button>
             </aside>
 
             <section class="desktop-canvas-zone">
@@ -250,8 +254,8 @@
                   <span>Maksimal 8 foto. Bisa dari galeri, kamera, atau file lokal.</span>
                 </label>
                 <div class="quick-actions">
-                  <button id="cameraButton" class="ghost-button" type="button">Ambil Foto</button>
-                  <button id="clearProjectButton" class="ghost-button" type="button">Reset</button>
+                  <button id="cameraButton" class="ghost-button" type="button">&#128247; Kamera</button>
+                  <button id="clearProjectButton" class="ghost-button" type="button">&#128260; Mulai Ulang</button>
                 </div>
                 <div class="section-block section-block--nested">
                   <h3>Template</h3>
@@ -320,11 +324,11 @@
                 <div class="text-style-controls" aria-label="Bentuk background teks">
                   <label class="toggle">
                     <input id="textBgTransparentInput" type="checkbox" />
-                    <span>BG transparan</span>
+                    <span>Tanpa BG</span>
                   </label>
                   <label class="toggle">
                     <input id="textBgRoundedInput" type="checkbox" />
-                    <span>Rounded BG</span>
+                    <span>Background Bulat</span>
                   </label>
                 </div>
                 <label class="field">
@@ -364,7 +368,7 @@
                     <input id="textPosYInput" type="range" min="5" max="95" step="1" />
                   </label>
                 </div>
-                <button id="deleteTextLayerButton" class="ghost-button" type="button">Hapus Layer Aktif</button>
+                <button id="deleteTextLayerButton" class="ghost-button" type="button">&#128465; Hapus</button>
               </div>
 
               <div id="section-filter" class="section-block">
@@ -507,7 +511,7 @@
                     <input id="slotOffsetYInput" type="range" min="-35" max="35" step="1" />
                   </label>
                 </div>
-                <button id="resetSlotButton" class="ghost-button" type="button">Reset Crop Slot</button>
+                <button id="resetSlotButton" class="ghost-button" type="button">&#128260; Reset Posisi Foto</button>
               </div>
 
               <div id="section-sticker" class="section-block">
@@ -575,8 +579,8 @@
                   <button id="saveAsButton" class="ghost-button" type="button">Simpan Sebagai PNG</button>
                   <button id="renameProjectButton" class="ghost-button" type="button">Rename Project</button>
                   <button id="loadProjectButton" class="ghost-button" type="button">Muat Project Tersimpan</button>
-                  <button id="importProjectButton" class="ghost-button" type="button">Import JSON Project</button>
-                  <button id="downloadProjectButton" class="ghost-button" type="button">Download JSON Project</button>
+                  <button id="importProjectButton" class="ghost-button advanced-project-action" type="button">Import JSON Project</button>
+                  <button id="downloadProjectButton" class="ghost-button advanced-project-action" type="button">Download JSON Project</button>
                 </div>
               </div>
             </aside>

@@ -335,6 +335,7 @@ const stickerSizeInput = document.querySelector("#stickerSizeInput");
 const stickerRotationInput = document.querySelector("#stickerRotationInput");
 const deleteStickerButton = document.querySelector("#deleteStickerButton");
 const mobileUploadCard = document.querySelector("#mobileUploadCard");
+const mobileOpenProjectsButton = document.querySelector("#mobileOpenProjectsButton");
 const mobileCameraButton = document.querySelector("#mobileCameraButton");
 const mobileClearProjectButton = document.querySelector("#mobileClearProjectButton");
 const mobileTemplateList = document.querySelector("#mobileTemplateList");
@@ -461,6 +462,29 @@ function parseZoomPercent(value) {
 function commitZoomInputValue(value) {
   const percent = parseZoomPercent(value);
   applyCanvasViewportZoom(percent / 100);
+}
+
+function showToast(message, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("show"));
+  window.setTimeout(() => {
+    toast.classList.remove("show");
+    window.setTimeout(() => toast.remove(), 300);
+  }, 2800);
+}
+
+function setButtonBusy(button, busy, busyText = "Memproses...") {
+  if (!button) return () => {};
+  const originalText = button.textContent;
+  button.disabled = busy;
+  if (busy) button.textContent = busyText;
+  return () => {
+    button.disabled = false;
+    button.textContent = originalText;
+  };
 }
 
 function getShareCaption() {
@@ -900,7 +924,16 @@ function renderPhotoLibrary() {
   const renderEmpty = (container) => {
     if (!container) return;
     container.className = "photo-library empty-state";
-    container.innerHTML = "<p>Belum ada foto. Upload dulu untuk mulai edit.</p>";
+    container.innerHTML = `
+      <div class="empty-photo-state">
+        <svg viewBox="0 0 96 76" aria-hidden="true">
+          <rect x="10" y="14" width="68" height="48" rx="14"></rect>
+          <circle cx="68" cy="20" r="10"></circle>
+          <path d="M18 58l18-20 14 14 10-10 20 22H18z"></path>
+        </svg>
+        <strong>Buat kolase foto impianmu</strong>
+        <p>Upload foto, pilih frame, tambah stiker & teks, lalu share ke sosmed.</p>
+      </div>`;
   };
 
   photoCount.textContent = `${state.photos.length} foto`;
@@ -1347,6 +1380,7 @@ function getExportSize() {
 
 function getSectionMap() {
   return {
+    pointer: sectionMedia,
     media: sectionMedia,
     frame: sectionFrame,
     sticker: sectionSticker,
@@ -1380,6 +1414,23 @@ function renderDesktopButtonStates() {
   sections.forEach((section) => section?.classList.add("hidden"));
 
   if (activeDesktopTool === "pointer") {
+    if (state.activeSelectionType === "text" && getCurrentText()) {
+      sectionText?.classList.remove("hidden");
+      return;
+    }
+    if (state.activeSelectionType === "sticker" && getCurrentSticker()) {
+      sectionSticker?.classList.remove("hidden");
+      return;
+    }
+    if (state.activeSelectionType === "slot") {
+      sectionCrop?.classList.remove("hidden");
+      sectionFilter?.classList.remove("hidden");
+      return;
+    }
+    if (state.activeSelectionType === "drawing" && state.drawingLayer?.dataUrl) {
+      sectionDraw?.classList.remove("hidden");
+      return;
+    }
     sectionMedia?.classList.remove("hidden");
     return;
   }
@@ -1529,7 +1580,7 @@ function renderMobileToolPanel() {
           <label class="field"><span>Geser Y</span><input id="mobileSlotOffsetY" type="range" min="-35" max="35" step="1" value="${Math.round(currentSlotEdit.offsetY * 100)}" /></label>
         </div>
         <div class="mobile-tool-actions">
-          <button class="mini-button" data-mobile-action="reset-slot">Reset Crop</button>
+          <button class="mini-button" data-mobile-action="reset-slot">Reset Posisi Foto</button>
         </div>
       </div>`,
     sticker: `
@@ -1571,8 +1622,8 @@ function renderMobileToolPanel() {
           <label class="field"><span>Rotasi</span><input id="mobileTextRotation" type="range" min="-180" max="180" step="1" value="${textRotation}" ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>Warna</span><input id="mobileTextColor" type="color" value="${textColor}" ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>BG Text</span><input id="mobileTextBgColor" type="color" value="${bgColor}" ${currentText ? "" : "disabled"} /></label>
-          <label class="field"><span>BG Transparan</span><input id="mobileTextBgTransparent" type="checkbox" ${normalizeTextBgColor(currentText?.bgColor || TRANSPARENT_TEXT_BG) === TRANSPARENT_TEXT_BG ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
-          <label class="field"><span>Rounded BG</span><input id="mobileTextBgRounded" type="checkbox" ${(currentText?.bgRadius ?? 999) > 0 ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>Tanpa BG</span><input id="mobileTextBgTransparent" type="checkbox" ${normalizeTextBgColor(currentText?.bgColor || TRANSPARENT_TEXT_BG) === TRANSPARENT_TEXT_BG ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
+          <label class="field"><span>Background Bulat</span><input id="mobileTextBgRounded" type="checkbox" ${(currentText?.bgRadius ?? 999) > 0 ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>Radius BG</span><input id="mobileTextBgRadius" type="range" min="0" max="80" step="1" value="${Math.min(80, currentText?.bgRadius ?? 80)}" ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>Border</span><input id="mobileTextBorderEnabled" type="checkbox" ${currentText?.border?.enabled ? "checked" : ""} ${currentText ? "" : "disabled"} /></label>
           <label class="field"><span>Warna Frame</span><input id="mobileTextBorderColor" type="color" value="${currentText?.border?.color || "#ff6b4a"}" ${currentText ? "" : "disabled"} /></label>
@@ -1630,7 +1681,7 @@ function renderMobileToolPanel() {
     layer: `
       <div class="mobile-tool-card">
         <strong>Layer</strong>
-        <p>${pendingSlotIndex === null ? "Pilih layer untuk edit, drag di kanvas untuk pindah, atau hapus layer aktif." : `Frame ${pendingSlotIndex + 1} kosong. Pilih foto di bawah atau ambil dari galeri.`}</p>
+        <p>${pendingSlotIndex === null ? "Pilih layer untuk edit, drag di kanvas untuk pindah, atau gunakan tombol Hapus." : `Frame ${pendingSlotIndex + 1} kosong. Pilih foto di bawah atau ambil dari galeri.`}</p>
         <div class="mobile-layer-section">
           <div class="mobile-layer-section__head">
             <strong>Foto / Galeri</strong>
@@ -2522,6 +2573,7 @@ function renderEditorSurfaceOnly() {
   restoreMobileDrawingLayer();
   renderMobileToolPanel();
   renderExportPresetUI();
+  renderDesktopButtonStates();
   applySelectionActionsVisibility();
   positionSelectionActions(editorStage, selectionActions);
   positionSelectionActions(mobileEditorPreview, mobileSelectionActions);
@@ -2829,7 +2881,7 @@ async function persistCurrentProject({ silent = false } = {}) {
   if (!state.projectId || !state.projectName) return;
   const record = await buildProjectRecord();
   await saveProjectRecord(record);
-  if (!silent) window.alert(`Project "${state.projectName}" berhasil disimpan.`);
+  if (!silent) showToast(`Project "${state.projectName}" tersimpan`);
 }
 
 async function refreshSavedProjects() {
@@ -2945,6 +2997,7 @@ async function shareCompositePng() {
   if (window.AndroidImageEditor?.shareImage) {
     const dataUrl = await blobToDataUrl(blob);
     window.AndroidImageEditor.shareImage(dataUrl, file.name, options.mimeType, caption);
+    showToast("Membuka pilihan share");
     return;
   }
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -2955,6 +3008,7 @@ async function shareCompositePng() {
       };
       if (caption) sharePayload.text = caption;
       await navigator.share(sharePayload);
+      showToast("Share berhasil dibuka");
     } catch (error) {
       if (error?.name !== "AbortError") throw error;
     }
@@ -2971,6 +3025,7 @@ async function saveCompositeAsDeviceImage({ preferShare = false, format = getSel
   if (window.AndroidImageEditor?.saveImage) {
     const dataUrl = await blobToDataUrl(blob);
     window.AndroidImageEditor.saveImage(dataUrl, filename, options.mimeType);
+    showToast("Foto dikirim ke Galeri");
     return;
   }
 
@@ -2981,6 +3036,7 @@ async function saveCompositeAsDeviceImage({ preferShare = false, format = getSel
         title: state.projectName || "My Image Editor",
         text: "Simpan gambar hasil edit",
       });
+      showToast("Share untuk simpan berhasil dibuka");
       return;
     } catch (error) {
       if (error?.name === "AbortError") return;
@@ -2997,6 +3053,7 @@ async function saveCompositeAsDeviceImage({ preferShare = false, format = getSel
       const writable = await handle.createWritable();
       await writable.write(blob);
       await writable.close();
+      showToast("Foto berhasil disimpan");
       return;
     } catch (error) {
       if (error?.name === "AbortError") return;
@@ -3005,6 +3062,7 @@ async function saveCompositeAsDeviceImage({ preferShare = false, format = getSel
   }
 
   await triggerDownload(blob, filename);
+  showToast("Foto berhasil diunduh");
 }
 
 function applySlotPhoto(slotIndex, photoId) {
@@ -4185,6 +4243,7 @@ async function handleFiles(fileList) {
     draft.selectedPhotoId = photoEntries[0]?.id || draft.selectedPhotoId;
     if (!pendingSlotAssignment) autoLayoutUploadedPhotos(photoEntries, draft);
   });
+  showToast(`${photoEntries.length} foto berhasil diupload`);
   return photoEntries;
 }
 
@@ -4323,6 +4382,9 @@ function setupEventListeners() {
   mobileSelectionDeleteButton?.addEventListener("click", confirmDeleteCurrentSelection);
   mobileUploadCard?.addEventListener("click", () => {
     photoInput.click();
+  });
+  mobileOpenProjectsButton?.addEventListener("click", async () => {
+    await loadMostRecentProject();
   });
   mobileCameraButton?.addEventListener("click", () => {
     cameraButton.click();
@@ -4465,11 +4527,15 @@ function setupEventListeners() {
     redoButton.click();
   });
   mobileEditorSaveButton?.addEventListener("click", async () => {
+    const restore = setButtonBusy(mobileEditorSaveButton, true, "...");
     try {
       await saveCompositeAsDeviceImage({ preferShare: false });
     } catch (error) {
       console.error(error);
+      showToast("Gagal menyimpan gambar", "error");
       window.alert("Simpan gambar gagal. Coba ulangi atau gunakan Share.");
+    } finally {
+      restore();
     }
   });
   mobileEditorShareButton?.addEventListener("click", async () => {
@@ -4799,10 +4865,30 @@ function setupEventListeners() {
     const blob = new Blob([JSON.stringify(cloneState(), null, 2)], { type: "application/json" });
     await triggerDownload(blob, `${state.projectName || "funpic-project"}.json`);
   });
-  saveImageButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: matchMedia("(max-width: 760px)").matches }));
+  saveImageButton?.addEventListener("click", async () => {
+    const restore = setButtonBusy(saveImageButton, true, "Memproses...");
+    try {
+      await saveCompositeAsDeviceImage({ preferShare: matchMedia("(max-width: 760px)").matches });
+    } catch (error) {
+      console.error(error);
+      showToast("Gagal menyimpan gambar", "error");
+    } finally {
+      restore();
+    }
+  });
   exportPngButton.addEventListener("click", downloadCompositePng);
   shareButton.addEventListener("click", shareCompositePng);
-  mobileSaveGalleryButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: false }));
+  mobileSaveGalleryButton?.addEventListener("click", async () => {
+    const restore = setButtonBusy(mobileSaveGalleryButton, true, "Memproses...");
+    try {
+      await saveCompositeAsDeviceImage({ preferShare: false });
+    } catch (error) {
+      console.error(error);
+      showToast("Gagal menyimpan gambar", "error");
+    } finally {
+      restore();
+    }
+  });
   mobileSavePlatformButton?.addEventListener("click", () => saveCompositeAsDeviceImage({ preferShare: false }));
   [mobileShareCaptionEnabledInput, desktopShareCaptionEnabledInput].forEach((input) => {
     input?.addEventListener("change", (event) => setShareTextEnabled(event.target.checked));
